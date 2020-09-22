@@ -5,15 +5,21 @@
  */
 package wordtoplistgui;
 
+
+
 /**
  *
  * @author laszlop
  */
-public class WordTopListGUI {
+public interface WordStore {
     
-    public static void main(String[] args) {
-        BasicFrame frame = new BasicFrame();
-        frame.setSize(800, 1000);
-    }
-}
+    public void store(String word);
+    
+    public void addSkipWord(String word);
+    
+    public void print();
+    
+    public void print(int n);   
 
+    
+}
