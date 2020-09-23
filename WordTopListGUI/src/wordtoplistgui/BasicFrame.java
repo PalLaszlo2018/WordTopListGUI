@@ -24,6 +24,7 @@ import javax.swing.JList;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
 import static wordtoplistgui.WordCollector.LOG;
 
 /**
@@ -37,7 +38,7 @@ public class BasicFrame extends javax.swing.JFrame {
     public DefaultListModel listModel = new DefaultListModel();
     public JList finishedURLs;
     public JTable result;
-    public String[] col = {"word", "frequency"};
+    public DefaultTableModel resultModel;
     public int TABLE_SIZE = 53;
 
     /**
@@ -55,18 +56,16 @@ public class BasicFrame extends javax.swing.JFrame {
      * Display the found words and its frequencies on the frame
      * @param map 
      */
-    public void displayResult(Map<String, Integer> map){
-        result.removeAll();
+    public void displayResult(Map<String, Integer> map) {
+        resultModel.setRowCount(0);
         List<Map.Entry<String, Integer>> sortedList = sortWordsByFreq(map);
-        int rows = Math.min(TABLE_SIZE, sortedList.size());
-        String[][] content = new String[TABLE_SIZE][2];
-        for (int i = 0; i < rows; i++) {
-            content[i][0] = sortedList.get(i).getKey();
-            content[i][1] = Integer.toString(sortedList.get(i).getValue());
-        }
-        result = new JTable(content, col);
-        result.setBounds(450, 60, 300, 850);
-        add(result);          
+        int displayedRows = Math.min(TABLE_SIZE, sortedList.size());
+        for (int i = 0; i < displayedRows; i++) {
+            String[] content = new String[2];         
+            content[0] = sortedList.get(i).getKey();
+            content[1] = Integer.toString(sortedList.get(i).getValue());
+            resultModel.addRow(content);
+        }         
     }
     
     /**
@@ -111,8 +110,10 @@ public class BasicFrame extends javax.swing.JFrame {
         finishedURLs.setBounds(50, 560, 350, 350);
         add(finishedURLs);
         
-        String[][] content = new String[1][2];
-        result = new JTable(content, col);
+        resultModel = new DefaultTableModel();
+        resultModel.addColumn("Words");
+        resultModel.addColumn("Frequency");
+        result = new JTable(resultModel);
         result.setBounds(450, 60, 300, 850);
         add(result); 
         

@@ -21,7 +21,9 @@ import static wordtoplistgui.WordCollector.LOG;
  * @author laszlop
  */
 public class SorterByFrequency implements WordStore {
-
+    
+    private int counter = 0;
+    private final int REFRESH_FREQUNECY = 10;
     private final Map<String, Integer> wordFrequency = new HashMap<>();
     private final Set<String> skipWords = new HashSet<>();
     private final BasicFrame frame;
@@ -40,9 +42,16 @@ public class SorterByFrequency implements WordStore {
     public synchronized void store(String word) {
         if (word.length() > 2 && !skipWords.contains(word)) {
             wordFrequency.put(word, wordFrequency.getOrDefault(word, 0) + 1);
+            counter++;
             LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
-            frame.displayResult(wordFrequency);
+            if(counter % REFRESH_FREQUNECY == 0) {
+                refreshResult();
+            }
         }
+    }
+    
+    private void refreshResult() {
+        frame.displayResult(wordFrequency);
     }
 
     /**
