@@ -13,7 +13,6 @@ public class WordTopListGUI {
     
     public static void main(String[] args) {
         BasicFrame frame = new BasicFrame();
-        frame.setSize(800, 1000);
     }
 }
 

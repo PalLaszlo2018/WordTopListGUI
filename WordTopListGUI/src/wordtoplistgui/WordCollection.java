@@ -22,7 +22,6 @@ import static wordtoplistgui.WordCollector.LOG;
 public class WordCollection {
 
     private final int maxThreads;
-    private final List<URL> processedURLs = new ArrayList<>();
     private final Set<String> skipWords;
     private final WordStore storer;
     private final BlockingQueue<URL> urlQueue;

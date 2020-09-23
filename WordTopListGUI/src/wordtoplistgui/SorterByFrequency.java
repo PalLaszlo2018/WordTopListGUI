@@ -38,7 +38,7 @@ public class SorterByFrequency implements WordStore {
      */
     @Override
     public synchronized void store(String word) {
-        if (word.length() > 1 && !skipWords.contains(word)) {
+        if (word.length() > 2 && !skipWords.contains(word)) {
             wordFrequency.put(word, wordFrequency.getOrDefault(word, 0) + 1);
             LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
             frame.displayResult(wordFrequency);

@@ -33,7 +33,6 @@ public class WordCollector extends Thread {
     private final CountDownLatch latch;
     private final Set<String> skipTags;
     private final Set<String> skipWords;
-    private final Set<Character> separators;
     private final WordStore storer;
     private final BasicFrame frame;
 
@@ -54,10 +53,8 @@ public class WordCollector extends Thread {
     public WordCollector(BlockingQueue<URL> urlQueue, CountDownLatch latch, Set<String> skipWords, WordStore storer, BasicFrame frame) {
         this.urlQueue = urlQueue;
         this.latch = latch;
-        this.skipTags = new HashSet<>(Arrays.asList("head", "style")); // texts between these tags are ignored
+        this.skipTags = new HashSet<>(Arrays.asList("head", "style", "script")); // texts between these tags are ignored
         this.skipWords = skipWords;
-        this.separators = new HashSet<>(Arrays.asList(' ', '"', '(', ')', '*', '<', '.', ':', '?', '!', ';', '-', '–', '=', '{', '}',
-                '/', '_', ',', '[', ']', '|'));
         this.storer = storer;
         this.frame = frame;
     }
@@ -67,8 +64,8 @@ public class WordCollector extends Thread {
         fillSkipWords();
         while (true) {
             URL url = takeURLfromQueue();
-            if ( url == null ) {
-                LOG.info(Thread.currentThread().getName() +": No more URL in the queue. Current thread terminates!");
+            if (url == null) {
+                LOG.info(Thread.currentThread().getName() + ": No more URL in the queue. Current thread terminates!");
                 return;
             }
             try {
@@ -78,26 +75,26 @@ public class WordCollector extends Thread {
                 LOG.warning(ex.getMessage());
             } finally {
                 synchronized (latch) {
-                    latch.countDown(); 
-                    LOG.info(Thread.currentThread().getName() +": " +url.toString()
+                    latch.countDown();
+                    LOG.info(Thread.currentThread().getName() + ": " + url.toString()
                             + " finished. The current size of the latch is: " + latch.getCount());
                     frame.displayprocessedURLs(url.toString());
                     if (latch.getCount() == 0) {
                         frame.startURLs.setText("Processing finished.");
-                    }              
-                    
+                    }
                 }
             }
         }
     }
-    
+
     /**
      * Takes out the next URL form the queue thread safe way
+     *
      * @return next URL
      */
     private synchronized URL takeURLfromQueue() {
         URL url = urlQueue.poll();
-        LOG.info(Thread.currentThread().getName() + ": "+ url + " was taken out from the queue, " + urlQueue.size() + " URL-s remained.");
+        LOG.info(Thread.currentThread().getName() + ": " + url + " was taken out from the queue, " + urlQueue.size() + " URL-s remained.");
         return url;
     }
 
@@ -120,7 +117,7 @@ public class WordCollector extends Thread {
         LOG.info("Processing of the homepage " + url.toString() + " started.");
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
             String openingTag = findOpeningTag(reader);
-            eatTag(openingTag, reader);
+            eatTag(openingTag, reader, true); //TODO
         }
     }
 
@@ -132,13 +129,13 @@ public class WordCollector extends Thread {
      * @param reader
      * @throws IOException
      */
-    private void eatTag(String tag, BufferedReader reader) throws IOException {
+    private void eatTag(String tag, BufferedReader reader, boolean processable) throws IOException {
         int value;
         StringBuilder word = new StringBuilder();
         while ((value = reader.read()) != -1) {
             char character = (char) value;
             if (character == '<') {
-                if (!skipTags.contains(tag)) {
+                if (processable) {
                     storer.store(word.toString().toLowerCase());
                 }
                 String nextTagString = buildTag(reader);
@@ -146,20 +143,62 @@ public class WordCollector extends Thread {
                     return;
                 }
                 if (!skipTags.contains(tag) && !nextTagString.startsWith("/")) {
-                    eatTag(nextTagString, reader);
+                    boolean nextProcessable = processable && !skipTags.contains(nextTagString);
+                    eatTag(nextTagString, reader, nextProcessable);
                 }
             }
-            if (separators.contains(character) || Character.isWhitespace(character)) {
-                if (!skipTags.contains(tag)) {
+            if (Character.isLetter(character)) {
+                word.append(character);
+            } else {
+                if (processable) {
                     storer.store(word.toString().toLowerCase());
                 }
                 word.setLength(0);
-                continue;
             }
-            word.append(character);
+
         }
     }
 
+    /**
+     * This method builds up the tag from the read characters.
+     *
+     * @param reader
+     * @return tag
+     * @throws IOException
+     */
+    private String buildTag(BufferedReader reader) throws IOException {
+        StringBuilder tag = new StringBuilder();
+        StringBuilder full = new StringBuilder();
+        String tagString = "";
+        char tagChar = '/';
+        int value;
+        while ((value = reader.read()) != -1) {
+            tagChar = (char) value;
+            if (tagChar == '>') {
+                String fullString = full.toString().toLowerCase();
+                if (tagString.isEmpty()) {
+                    tagString = fullString;
+                }
+                if (fullString.isEmpty()
+                        || fullString.charAt(full.length() - 1) == '/' //self-closing tags will be ignored
+                        || fullString.startsWith("!--") && fullString.endsWith("--")) { // HTML comments will be ignored
+                    return "";
+                } else {
+                    return tagString;
+                }
+            }
+            full.append(tagChar);
+            if (tagChar == ' ' && tagString.isEmpty()) {
+                tagString = tag.toString().toLowerCase();
+            }
+            if (tagString.isEmpty()) {
+                tag.append(tagChar);
+            }
+        }
+        return tagString; //if tag is closed, it will never run
+    }
+    
+    
     /**
      * This method finds the first opening tag, this tag is needed to start the substantive eatTag method.
      *
@@ -178,26 +217,6 @@ public class WordCollector extends Thread {
             }
         }
         return openingTag;
-    }
-
-    /**
-     * This method builds up the tag from the read characters.
-     *
-     * @param reader
-     * @return tag
-     * @throws IOException
-     */
-    private String buildTag(BufferedReader reader) throws IOException {
-        StringBuilder tag = new StringBuilder();
-        int value;
-        while ((value = reader.read()) != -1) {
-            char tagChar = (char) value;
-            if (tagChar == '>') {
-                return tag.toString().toLowerCase();
-            }
-            tag.append(tagChar);
-        }
-        return tag.toString().toLowerCase();
     }
 
     /**

@@ -38,17 +38,17 @@ public class BasicFrame extends javax.swing.JFrame {
     public JList finishedURLs;
     public JTable result;
     public String[] col = {"word", "frequency"};
-    public int TABLE_SIZE = 52;
+    public int TABLE_SIZE = 53;
 
     /**
      * Creates new form BasicFrame
      */
     public BasicFrame() {
         super("WORD TOPLIST CREATOR");
-        // setSize(800, 1000);       TODO Miért nem működik?
         initComponents();
         initExtraComponents();
         initFields();
+        setSize(800, 1000);
     }
     
     /**
@@ -89,10 +89,7 @@ public class BasicFrame extends javax.swing.JFrame {
     }
         
     public void initCollectionClass(List<URL> urlList, int maxThread) throws Exception {
-        Set<String> skipWords = new HashSet<>(Arrays.asList("an", "and", "by", "for", "if", "is", "in", "it", "of", "on", "that",
-                "the", "to", "with", "www", "url", "class", "href", "name", "label", "html", "target", "true", "window", "title",
-                "src", "id", "basepath", "data", "style", "mode", "component", "rel", "false", "function", "type", "content", "aria",
-                "alt"));
+        Set<String> skipWords = new HashSet<>(Arrays.asList("and", "but", "for", "that", "the", "with", "www"));
         WordStore wordStoreFreq = new SorterByFrequency(this);
         WordCollection wordCollectionFreq = new WordCollection(urlList, wordStoreFreq, skipWords, maxThread, this);
         wordCollectionFreq.runThreads();
