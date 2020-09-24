@@ -33,6 +33,10 @@ public class SorterByFrequency implements WordStore {
     }
        
 
+    public Map<String, Integer> getWords() {
+        return new HashMap(wordFrequency);
+    }
+    
     /**
      * This method adds the got word to the Map which contains the found valid words.
      *
@@ -44,15 +48,16 @@ public class SorterByFrequency implements WordStore {
             wordFrequency.put(word, wordFrequency.getOrDefault(word, 0) + 1);
             counter++;
             LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
-            if(counter % REFRESH_FREQUNECY == 0) {
-                refreshResult();
-            }
+            frame.updateLater();
+//            if(counter % REFRESH_FREQUNECY == 0) {
+//                refreshResult();
+//            }
         }
     }
     
-    private void refreshResult() {
-        frame.displayResult(wordFrequency);
-    }
+//    private void refreshResult() {
+//        frame.displayResult(wordFrequency);
+//    }
 
     /**
      * This method adds the got word to the Set which contains the words to be ignored.

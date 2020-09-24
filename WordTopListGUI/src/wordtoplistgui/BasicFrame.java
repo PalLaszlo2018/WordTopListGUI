@@ -24,6 +24,7 @@ import javax.swing.JList;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import static wordtoplistgui.WordCollector.LOG;
 
@@ -40,6 +41,8 @@ public class BasicFrame extends javax.swing.JFrame {
     public JTable result;
     public DefaultTableModel resultModel;
     public int TABLE_SIZE = 53;
+    
+    private boolean update;
 
     /**
      * Creates new form BasicFrame
@@ -52,11 +55,22 @@ public class BasicFrame extends javax.swing.JFrame {
         setSize(800, 1000);
     }
     
+    public void updateLater() {
+        update = true;
+        // TODO: Implementálj itt egy runnable objektumot, ami majd a konkrét frissítést elvégzi
+        SwingUtilities.invokeLater();        
+    }
+    
     /**
      * Display the found words and its frequencies on the frame
      * @param map 
      */
     public void displayResult(Map<String, Integer> map) {
+        // TODO: használd inkább az alábbi logikát a ciklusban.
+        resultModel.setValueAt(word, row, 0);
+        resultModel.setValueAt(count, row, 1);
+
+        
         resultModel.setRowCount(0);
         List<Map.Entry<String, Integer>> sortedList = sortWordsByFreq(map);
         int displayedRows = Math.min(TABLE_SIZE, sortedList.size());
