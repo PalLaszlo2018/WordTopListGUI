@@ -22,18 +22,16 @@ import static wordtoplistgui.WordCollector.LOG;
  */
 public class SorterByFrequency implements WordStore {
     
-    private int counter = 0;
-    private final int REFRESH_FREQUNECY = 10;
     private final Map<String, Integer> wordFrequency = new HashMap<>();
     private final Set<String> skipWords = new HashSet<>();
-    private final BasicFrame frame;
+    private final List<String> finishedURLs = new ArrayList<>();
+    private boolean finished;
 
-    public SorterByFrequency(BasicFrame frame) {
-        this.frame = frame;
-    }
-       
-
-    public Map<String, Integer> getWords() {
+    /**
+     * Creates a copy of the actual state of the Map storing the result
+     * @return Map with actual result
+     */
+    public Map<String, Integer> getResult() {
         return new HashMap(wordFrequency);
     }
     
@@ -46,19 +44,10 @@ public class SorterByFrequency implements WordStore {
     public synchronized void store(String word) {
         if (word.length() > 2 && !skipWords.contains(word)) {
             wordFrequency.put(word, wordFrequency.getOrDefault(word, 0) + 1);
-            counter++;
             LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
-            frame.updateLater();
-//            if(counter % REFRESH_FREQUNECY == 0) {
-//                refreshResult();
-//            }
         }
     }
     
-//    private void refreshResult() {
-//        frame.displayResult(wordFrequency);
-//    }
-
     /**
      * This method adds the got word to the Set which contains the words to be ignored.
      *
@@ -109,9 +98,21 @@ public class SorterByFrequency implements WordStore {
     
     //============GETTER==============
 
-    public Map<String, Integer> getWordFrequency() {
-        return wordFrequency;
+    public List<String> getFinishedURLs() {
+        return finishedURLs;
     }
+
+    public boolean isFinished() {
+        return finished;
+    } 
+    
+    //===========SETTER==============
+
+    public void setFinished(boolean finished) {
+        this.finished = finished;
+    }
+    
+    
     
     
 }

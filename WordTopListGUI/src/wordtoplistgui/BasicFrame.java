@@ -11,12 +11,9 @@ import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -33,114 +30,131 @@ import static wordtoplistgui.WordCollector.LOG;
  * @author laszlop
  */
 public class BasicFrame extends javax.swing.JFrame {
-    
-    public JTextArea startURLs;
-    public JTextField threadCount;
-    public DefaultListModel listModel = new DefaultListModel();
-    public JList finishedURLs;
-    public JTable result;
-    public DefaultTableModel resultModel;
-    public int TABLE_SIZE = 53;
-    
+
+    private WordCollection collection;
+    private JTextArea startURLs;
+    private JTextField threadCount;
+    private DefaultListModel listModel = new DefaultListModel();
+    private JList finishedURLs;
+    private JTable result;
+    private DefaultTableModel resultModel;
+    private int TABLE_SIZE = 53;
     private boolean update;
 
     /**
      * Creates new form BasicFrame
      */
-    public BasicFrame() {
+    public BasicFrame(WordCollection collection) {
         super("WORD TOPLIST CREATOR");
         initComponents();
         initExtraComponents();
         initFields();
         setSize(800, 1000);
+        this.collection = collection;
     }
-    
+
     public void updateLater() {
         update = true;
-        // TODO: Implementálj itt egy runnable objektumot, ami majd a konkrét frissítést elvégzi
-        SwingUtilities.invokeLater();        
+        Runnable refresher = new Runnable() {
+            @Override
+            public void run() {
+                displayResult();
+                displayprocessedURLs();
+                displayFinished();
+            }
+        };
+        SwingUtilities.invokeLater(refresher);
     }
-    
+
     /**
      * Display the found words and its frequencies on the frame
-     * @param map 
+     *
+     * @param map
      */
-    public void displayResult(Map<String, Integer> map) {
-        // TODO: használd inkább az alábbi logikát a ciklusban.
-        resultModel.setValueAt(word, row, 0);
-        resultModel.setValueAt(count, row, 1);
-
-        
-        resultModel.setRowCount(0);
-        List<Map.Entry<String, Integer>> sortedList = sortWordsByFreq(map);
+    public void displayResult() {
+        Map<String, Integer> resultMap = collection.getStorer().getResult();
+        List<Map.Entry<String, Integer>> sortedList = sortWordsByFreq(resultMap);
         int displayedRows = Math.min(TABLE_SIZE, sortedList.size());
-        for (int i = 0; i < displayedRows; i++) {
-            String[] content = new String[2];         
-            content[0] = sortedList.get(i).getKey();
-            content[1] = Integer.toString(sortedList.get(i).getValue());
-            resultModel.addRow(content);
-        }         
+        for (int row = 0; row < displayedRows; row++) {
+            if (resultModel.getColumnCount() < row) {
+                resultModel.addRow(new String[]{sortedList.get(row).getKey(), Integer.toString(sortedList.get(row).getValue())});
+            } else {
+                resultModel.setValueAt(sortedList.get(row).getKey(), row, 0);
+                resultModel.setValueAt(Integer.toString(sortedList.get(row).getValue()), row, 1);
+            }
+        }
     }
-    
+
     /**
-     * Adds a finished URL and displays it.
-     * @param finishedURL 
+     * Displays the full list of finished URLs
+     *
+     * @param finishedURL
      */
-    public void displayprocessedURLs(String finishedURL) {
-        listModel.addElement(finishedURL);
+    public void displayprocessedURLs() {
+        List<String> processedURLs = collection.getStorer().getFinishedURLs();
+        listModel.clear();
+        for (int i = 0; i < processedURLs.size(); i++) {
+            listModel.addElement(processedURLs.get(i));
+        }
     }
-    
+
+    public void displayFinished() {
+        boolean allURLsFinished = collection.getStorer().isFinished();
+        if (allURLsFinished) {
+            startURLs.setText("Processing finished");
+        }
+    }
+
     /**
      * Creates a sorted list from the entries of the freq Map
+     *
      * @param map
-     * @return 
+     * @return
      */
     private List<Map.Entry<String, Integer>> sortWordsByFreq(Map<String, Integer> map) {
         ArrayList<Map.Entry<String, Integer>> sortedList = new ArrayList<>(map.entrySet());
         Collections.sort(sortedList, new WordFreqComparator());
         return sortedList;
     }
-        
-    public void initCollectionClass(List<URL> urlList, int maxThread) throws Exception {
-        Set<String> skipWords = new HashSet<>(Arrays.asList("and", "but", "for", "that", "the", "with", "www"));
-        WordStore wordStoreFreq = new SorterByFrequency(this);
-        WordCollection wordCollectionFreq = new WordCollection(urlList, wordStoreFreq, skipWords, maxThread, this);
-        wordCollectionFreq.runThreads();
-        wordCollectionFreq.print(10);
+
+    public void setCollectionClass(List<URL> urlList, int maxThread) throws Exception {
+        collection.setMaxThreads(maxThread);
+        collection.setURLs(urlList);
+        collection.runThreads();
+        collection.print(10);
     }
-    
+
     private void initFields() {
-        
+
         startURLs = new JTextArea(10, 1);
         startURLs.setBounds(50, 60, 350, 350);
         add(startURLs);
-        
+
         threadCount = new JTextField();
         threadCount.setBounds(50, 480, 140, 30);
         threadCount.setText("4");
         add(threadCount);
-        
+
         finishedURLs = new JList(listModel);
         finishedURLs.setBounds(50, 560, 350, 350);
         add(finishedURLs);
-        
+
         resultModel = new DefaultTableModel();
         resultModel.addColumn("Words");
         resultModel.addColumn("Frequency");
         result = new JTable(resultModel);
         result.setBounds(450, 60, 300, 850);
-        add(result); 
-        
+        add(result);
+
         setVisible(true);
     }
-    
-    
+
     private void initExtraComponents() {
 
         JLabel URLsToProcess = new JLabel("URLs to process:");
         URLsToProcess.setBounds(50, 20, 150, 30);
         add(URLsToProcess);
-        
+
         JLabel threadLabel = new JLabel("Number of threads:");
         threadLabel.setBounds(50, 450, 150, 30);
         add(URLsToProcess);
@@ -148,16 +162,17 @@ public class BasicFrame extends javax.swing.JFrame {
         JLabel processedURLs = new JLabel("Processed URLs:");
         processedURLs.setBounds(50, 520, 150, 30);
         add(processedURLs);
-        
+
         JLabel mostCommonWords = new JLabel("Most common words: ");
         mostCommonWords.setBounds(450, 20, 200, 30);
-        add(mostCommonWords);        
-               
+        add(mostCommonWords);
+
         JButton button = new JButton("Do it");
         button.setBounds(250, 450, 150, 60);
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                updateLater();
                 List<URL> urlList = new ArrayList<>();
                 String[] URLs = startURLs.getText().split("\n");
                 for (int i = 0; i < URLs.length; i++) {
@@ -169,24 +184,23 @@ public class BasicFrame extends javax.swing.JFrame {
                 }
                 int maxThread = 4;
                 if (Character.isDigit(threadCount.getText().charAt(0))) {
-                    maxThread = Integer.parseInt(threadCount.getText()); 
+                    maxThread = Integer.parseInt(threadCount.getText());
                     if (maxThread == 0) {
                         maxThread = 1;
                     }
                     threadCount.setText(Integer.toString(maxThread));
-                } else {                  
+                } else {
                     threadCount.setBackground(Color.red);
-                }    
-                try {                
-                    initCollectionClass(urlList, maxThread);
+                }
+                try {
+                    setCollectionClass(urlList, maxThread);
                 } catch (Exception ex) {
                     LOG.severe("Application failed.");;
                 }
             }
-        }); 
+        });
         add(button);
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of

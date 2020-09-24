@@ -7,6 +7,8 @@ package wordtoplistgui;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -21,29 +23,20 @@ import static wordtoplistgui.WordCollector.LOG;
  */
 public class WordCollection {
 
-    private final int maxThreads;
-    private final Set<String> skipWords;
-    private final WordStore storer;
-    private final BlockingQueue<URL> urlQueue;
-    private final CountDownLatch latch;
-    private final BasicFrame frame;
-
-    public WordCollection(List<URL> urlList, WordStore storer, Set<String> skipWords, int maxThreads, BasicFrame frame) {
-        this.maxThreads = maxThreads;
-        this.skipWords = skipWords;
-        this.storer = storer;
-        urlQueue = new ArrayBlockingQueue(urlList.size(), false, urlList);
-        latch = new CountDownLatch(urlList.size());
-        this.frame = frame;
-    }
-    
+    private int maxThreads;
+    private final Set<String> skipWords = new HashSet<>(Arrays.asList("and", "but", "for", "that", "the", "with", "www"));
+    private final SorterByFrequency storer = new SorterByFrequency();
+    private BlockingQueue<URL> urlQueue;
+    private CountDownLatch latch;
+   
+   
     /**
      * Creates Threads and starts them
      */    
     public void runThreads() throws Exception {
         List<Thread> threadList = new ArrayList<>();
         for (int i = 0; i < maxThreads; i++) {
-            threadList.add(new WordCollector(urlQueue, latch, skipWords, storer, frame));
+            threadList.add(new WordCollector(urlQueue, latch, skipWords, storer));
             threadList.get(i).start();
             LOG.info("THREAD " + (i + 1) + " STARTED.");
         }
@@ -64,5 +57,29 @@ public class WordCollection {
     public void print(int n) {
         storer.print(n);
     }
+    
+    //=========GETTERS============
+
+    public SorterByFrequency getStorer() {
+        return storer;
+    }
+    
+    
+    
+    //==========SETTERS===========
+    
+    public void setURLs(List<URL> urlList) {
+        urlQueue = new ArrayBlockingQueue(urlList.size(), false, urlList);
+        latch = new CountDownLatch(urlList.size());
+    }
+
+    public void setMaxThreads(int maxThreads) {
+        this.maxThreads = maxThreads;
+    }
+    
+    
+
+    
+    
 
 }

@@ -9,9 +9,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -33,8 +35,8 @@ public class WordCollector extends Thread {
     private final CountDownLatch latch;
     private final Set<String> skipTags;
     private final Set<String> skipWords;
-    private final WordStore storer;
-    private final BasicFrame frame;
+    private final SorterByFrequency store;
+    private boolean finished;
 
     static {
         LOG.setUseParentHandlers(false);
@@ -50,13 +52,12 @@ public class WordCollector extends Thread {
         LOG.addHandler(handler);
     }
 
-    public WordCollector(BlockingQueue<URL> urlQueue, CountDownLatch latch, Set<String> skipWords, WordStore storer, BasicFrame frame) {
+    public WordCollector(BlockingQueue<URL> urlQueue, CountDownLatch latch, Set<String> skipWords, SorterByFrequency storer) {
         this.urlQueue = urlQueue;
         this.latch = latch;
         this.skipTags = new HashSet<>(Arrays.asList("head", "style", "script")); // texts between these tags are ignored
         this.skipWords = skipWords;
-        this.storer = storer;
-        this.frame = frame;
+        this.store = storer;
     }
 
     @Override
@@ -78,9 +79,9 @@ public class WordCollector extends Thread {
                     latch.countDown();
                     LOG.info(Thread.currentThread().getName() + ": " + url.toString()
                             + " finished. The current size of the latch is: " + latch.getCount());
-                    frame.displayprocessedURLs(url.toString());
+                    store.getFinishedURLs().add(url.toString());
                     if (latch.getCount() == 0) {
-                        frame.startURLs.setText("Processing finished.");
+                        store.setFinished(true);
                     }
                 }
             }
@@ -117,7 +118,7 @@ public class WordCollector extends Thread {
         LOG.info("Processing of the homepage " + url.toString() + " started.");
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
             String openingTag = findOpeningTag(reader);
-            eatTag(openingTag, reader, true); //TODO
+            eatTag(openingTag, reader, true);
         }
     }
 
@@ -136,7 +137,7 @@ public class WordCollector extends Thread {
             char character = (char) value;
             if (character == '<') {
                 if (processable) {
-                    storer.store(word.toString().toLowerCase());
+                    store.store(word.toString().toLowerCase());
                 }
                 String nextTagString = buildTag(reader);
                 if (('/' + tag).equals(nextTagString)) {
@@ -151,11 +152,10 @@ public class WordCollector extends Thread {
                 word.append(character);
             } else {
                 if (processable) {
-                    storer.store(word.toString().toLowerCase());
+                    store.store(word.toString().toLowerCase());
                 }
                 word.setLength(0);
             }
-
         }
     }
 
@@ -225,6 +225,14 @@ public class WordCollector extends Thread {
      * @param word
      */
     public void addSkipWord(String word) {
-        storer.addSkipWord(word);
+        store.addSkipWord(word);
     }
+    
+    //=============GETTER================
+
+    public boolean isFinished() {
+        return finished;
+    } 
+    
+    
 }

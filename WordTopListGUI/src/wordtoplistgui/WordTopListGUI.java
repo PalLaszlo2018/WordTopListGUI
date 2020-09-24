@@ -12,7 +12,7 @@ package wordtoplistgui;
 public class WordTopListGUI {
     
     public static void main(String[] args) {
-        BasicFrame frame = new BasicFrame();
+        BasicFrame frame = new BasicFrame(new WordCollection());
     }
 }
 
