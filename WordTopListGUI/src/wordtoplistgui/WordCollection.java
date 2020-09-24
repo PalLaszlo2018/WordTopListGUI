@@ -28,6 +28,7 @@ public class WordCollection {
     private final SorterByFrequency storer = new SorterByFrequency();
     private BlockingQueue<URL> urlQueue;
     private CountDownLatch latch;
+    private BasicFrame frame;
    
    
     /**
@@ -36,7 +37,7 @@ public class WordCollection {
     public void runThreads() throws Exception {
         List<Thread> threadList = new ArrayList<>();
         for (int i = 0; i < maxThreads; i++) {
-            threadList.add(new WordCollector(urlQueue, latch, skipWords, storer));
+            threadList.add(new WordCollector(urlQueue, latch, skipWords, storer, frame));
             threadList.get(i).start();
             LOG.info("THREAD " + (i + 1) + " STARTED.");
         }
@@ -76,6 +77,12 @@ public class WordCollection {
     public void setMaxThreads(int maxThreads) {
         this.maxThreads = maxThreads;
     }
+
+    public void setFrame(BasicFrame frame) {
+        this.frame = frame;
+    }
+    
+    
     
     
 

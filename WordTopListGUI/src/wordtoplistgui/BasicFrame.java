@@ -34,11 +34,11 @@ public class BasicFrame extends javax.swing.JFrame {
     private WordCollection collection;
     private JTextArea startURLs;
     private JTextField threadCount;
-    private DefaultListModel listModel = new DefaultListModel();
+    private final DefaultListModel listModel = new DefaultListModel();
     private JList finishedURLs;
     private JTable result;
     private DefaultTableModel resultModel;
-    private int TABLE_SIZE = 53;
+    private final int TABLE_SIZE = 53;
     private boolean update;
 
     /**
@@ -52,12 +52,19 @@ public class BasicFrame extends javax.swing.JFrame {
         setSize(800, 1000);
         this.collection = collection;
     }
-
+    
+    /**
+     * To refresh the fields
+     */
     public void updateLater() {
+        if (update) {
+            return;
+        }
         update = true;
         Runnable refresher = new Runnable() {
             @Override
             public void run() {
+                update = false;
                 displayResult();
                 displayprocessedURLs();
                 displayFinished();
@@ -67,16 +74,15 @@ public class BasicFrame extends javax.swing.JFrame {
     }
 
     /**
-     * Display the found words and its frequencies on the frame
+     * Displays the found words and its frequencies on the frame
      *
      * @param map
      */
     public void displayResult() {
-        Map<String, Integer> resultMap = collection.getStorer().getResult();
-        List<Map.Entry<String, Integer>> sortedList = sortWordsByFreq(resultMap);
+        List<Map.Entry<String, Integer>> sortedList = collection.getStorer().sortedWordsByFreq();
         int displayedRows = Math.min(TABLE_SIZE, sortedList.size());
         for (int row = 0; row < displayedRows; row++) {
-            if (resultModel.getColumnCount() < row) {
+            if (row >= resultModel.getRowCount()) {
                 resultModel.addRow(new String[]{sortedList.get(row).getKey(), Integer.toString(sortedList.get(row).getValue())});
             } else {
                 resultModel.setValueAt(sortedList.get(row).getKey(), row, 0);
@@ -104,7 +110,7 @@ public class BasicFrame extends javax.swing.JFrame {
             startURLs.setText("Processing finished");
         }
     }
-
+    
     /**
      * Creates a sorted list from the entries of the freq Map
      *
@@ -118,6 +124,7 @@ public class BasicFrame extends javax.swing.JFrame {
     }
 
     public void setCollectionClass(List<URL> urlList, int maxThread) throws Exception {
+        collection.setFrame(this);
         collection.setMaxThreads(maxThread);
         collection.setURLs(urlList);
         collection.runThreads();

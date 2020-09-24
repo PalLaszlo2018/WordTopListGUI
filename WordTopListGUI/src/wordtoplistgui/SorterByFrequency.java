@@ -5,6 +5,8 @@
  */
 package wordtoplistgui;
 
+import static wordtoplistgui.WordCollector.LOG;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import static wordtoplistgui.WordCollector.LOG;
+
 
 /**
  * This class can be used to create sorting by frequency
@@ -31,9 +33,6 @@ public class SorterByFrequency implements WordStore {
      * Creates a copy of the actual state of the Map storing the result
      * @return Map with actual result
      */
-    public Map<String, Integer> getResult() {
-        return new HashMap(wordFrequency);
-    }
     
     /**
      * This method adds the got word to the Map which contains the found valid words.
@@ -90,7 +89,7 @@ public class SorterByFrequency implements WordStore {
      *
      * @return sorted List
      */
-    private List<Map.Entry<String, Integer>> sortedWordsByFreq() {
+    public synchronized List<Map.Entry<String, Integer>> sortedWordsByFreq() {
         ArrayList<Map.Entry<String, Integer>> sortedList = new ArrayList<>(wordFrequency.entrySet());
         Collections.sort(sortedList, new WordFreqComparator());
         return sortedList;

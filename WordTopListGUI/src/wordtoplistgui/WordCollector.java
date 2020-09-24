@@ -9,11 +9,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -37,6 +35,7 @@ public class WordCollector extends Thread {
     private final Set<String> skipWords;
     private final SorterByFrequency store;
     private boolean finished;
+    private BasicFrame frame;
 
     static {
         LOG.setUseParentHandlers(false);
@@ -52,12 +51,14 @@ public class WordCollector extends Thread {
         LOG.addHandler(handler);
     }
 
-    public WordCollector(BlockingQueue<URL> urlQueue, CountDownLatch latch, Set<String> skipWords, SorterByFrequency storer) {
+    public WordCollector(BlockingQueue<URL> urlQueue, CountDownLatch latch, Set<String> skipWords, SorterByFrequency storer,
+            BasicFrame frame) {
         this.urlQueue = urlQueue;
         this.latch = latch;
         this.skipTags = new HashSet<>(Arrays.asList("head", "style", "script")); // texts between these tags are ignored
         this.skipWords = skipWords;
         this.store = storer;
+        this.frame = frame;
     }
 
     @Override
@@ -138,6 +139,7 @@ public class WordCollector extends Thread {
             if (character == '<') {
                 if (processable) {
                     store.store(word.toString().toLowerCase());
+                    frame.updateLater();
                 }
                 String nextTagString = buildTag(reader);
                 if (('/' + tag).equals(nextTagString)) {
@@ -153,6 +155,7 @@ public class WordCollector extends Thread {
             } else {
                 if (processable) {
                     store.store(word.toString().toLowerCase());
+                    frame.updateLater();
                 }
                 word.setLength(0);
             }
