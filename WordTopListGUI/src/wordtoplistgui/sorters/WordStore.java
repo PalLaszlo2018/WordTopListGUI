@@ -1,7 +1,6 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright: SONY MUSIC ENTERTAINMENT 
+ * Create Date: 2020.09.25. 
  */
 package wordtoplistgui.sorters;
 
