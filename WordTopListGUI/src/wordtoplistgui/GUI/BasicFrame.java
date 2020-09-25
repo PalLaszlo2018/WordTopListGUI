@@ -3,15 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wordtoplistgui;
+package wordtoplistgui.GUI;
 
+import static wordtoplistgui.WordTopListGUI.LOG;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.swing.DefaultListModel;
@@ -23,15 +23,15 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
-import static wordtoplistgui.WordCollector.LOG;
+import wordtoplistgui.CollectorManager;
 
 /**
- *
+ * The GUI of the application
  * @author laszlop
  */
 public class BasicFrame extends javax.swing.JFrame {
 
-    private WordCollection collection;
+    private final CollectorManager manager;
     private JTextArea startURLs;
     private JTextField threadCount;
     private final DefaultListModel listModel = new DefaultListModel();
@@ -44,13 +44,13 @@ public class BasicFrame extends javax.swing.JFrame {
     /**
      * Creates new form BasicFrame
      */
-    public BasicFrame(WordCollection collection) {
+    public BasicFrame (CollectorManager manager) {
         super("WORD TOPLIST CREATOR");
         initComponents();
         initExtraComponents();
         initFields();
         setSize(800, 1000);
-        this.collection = collection;
+        this.manager = manager;
     }
     
     /**
@@ -79,7 +79,7 @@ public class BasicFrame extends javax.swing.JFrame {
      * @param map
      */
     public void displayResult() {
-        List<Map.Entry<String, Integer>> sortedList = collection.getStorer().sortedWordsByFreq();
+        List<Map.Entry<String, Integer>> sortedList = manager.getSortedWords();
         int displayedRows = Math.min(TABLE_SIZE, sortedList.size());
         for (int row = 0; row < displayedRows; row++) {
             if (row >= resultModel.getRowCount()) {
@@ -97,38 +97,34 @@ public class BasicFrame extends javax.swing.JFrame {
      * @param finishedURL
      */
     public void displayprocessedURLs() {
-        List<String> processedURLs = collection.getStorer().getFinishedURLs();
+        List<String> processedURLs = manager.getFinishedURLs();
         listModel.clear();
         for (int i = 0; i < processedURLs.size(); i++) {
             listModel.addElement(processedURLs.get(i));
         }
     }
-
+    
+    /**
+     * after all URLs were processed, it prints a message to inform the user
+     */
     public void displayFinished() {
-        boolean allURLsFinished = collection.getStorer().isFinished();
+        boolean allURLsFinished = manager.isFinished();
         if (allURLsFinished) {
             startURLs.setText("Processing finished");
         }
     }
     
     /**
-     * Creates a sorted list from the entries of the freq Map
-     *
-     * @param map
-     * @return
+     * sets the important fields of the CollectorManager
+     * @param urlList
+     * @param maxThread
+     * @throws Exception 
      */
-    private List<Map.Entry<String, Integer>> sortWordsByFreq(Map<String, Integer> map) {
-        ArrayList<Map.Entry<String, Integer>> sortedList = new ArrayList<>(map.entrySet());
-        Collections.sort(sortedList, new WordFreqComparator());
-        return sortedList;
-    }
-
-    public void setCollectionClass(List<URL> urlList, int maxThread) throws Exception {
-        collection.setFrame(this);
-        collection.setMaxThreads(maxThread);
-        collection.setURLs(urlList);
-        collection.runThreads();
-        collection.print(10);
+    public void setCollectorManager(List<URL> urlList, int maxThread) throws Exception {
+        manager.setFrame(this);
+        manager.setMaxThreads(maxThread);
+        manager.setURLs(urlList);
+        manager.runThreads();
     }
 
     private void initFields() {
@@ -179,7 +175,6 @@ public class BasicFrame extends javax.swing.JFrame {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                updateLater();
                 List<URL> urlList = new ArrayList<>();
                 String[] URLs = startURLs.getText().split("\n");
                 for (int i = 0; i < URLs.length; i++) {
@@ -192,15 +187,12 @@ public class BasicFrame extends javax.swing.JFrame {
                 int maxThread = 4;
                 if (Character.isDigit(threadCount.getText().charAt(0))) {
                     maxThread = Integer.parseInt(threadCount.getText());
-                    if (maxThread == 0) {
-                        maxThread = 1;
-                    }
                     threadCount.setText(Integer.toString(maxThread));
                 } else {
                     threadCount.setBackground(Color.red);
                 }
                 try {
-                    setCollectionClass(urlList, maxThread);
+                    setCollectorManager(urlList, maxThread);
                 } catch (Exception ex) {
                     LOG.severe("Application failed.");;
                 }

@@ -3,15 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wordtoplistgui;
+package wordtoplistgui.sorters;
 
+import static wordtoplistgui.WordTopListGUI.LOG;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
-import static wordtoplistgui.WordCollector.LOG;
+
 
 /**
  * This class can be used to create sorting by the length of the word
@@ -29,7 +31,8 @@ public class SorterByLength implements WordStore {
      * @param word
      */
     @Override
-    public synchronized void store(String word) {
+    public synchronized void store(CharSequence charSequence) {
+        String word = charSequence.toString();
         if (word.length() > 1 && !skipWords.contains(word)) {
             words.add(word);
             LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
@@ -42,8 +45,8 @@ public class SorterByLength implements WordStore {
      * @param word
      */
     @Override
-    public void addSkipWord(String word) {
-        skipWords.add(word);
+    public void addSkipWords(Collection<String> c) {
+        skipWords.addAll(skipWords);
     }
 
     /**

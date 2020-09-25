@@ -3,11 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wordtoplistgui;
+package wordtoplistgui.sorters;
 
+import static wordtoplistgui.WordTopListGUI.LOG;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import static wordtoplistgui.WordCollector.LOG;
+
 
 /**
  * This class can be used to create sorting by vowel frequency
@@ -34,7 +36,8 @@ public class SorterByVowelFreq implements WordStore {
      * @param word
      */
     @Override
-    public synchronized void store(String word) {
+    public synchronized void store(CharSequence charSequence) {
+        String word = charSequence.toString();
         if (word.length() > 1 && !skipWords.contains(word) && !wordVowelFreq.containsKey(word)) {
             double vowelFreq = countVowels(word) / (double) word.length();
             wordVowelFreq.put(word, vowelFreq);
@@ -64,8 +67,8 @@ public class SorterByVowelFreq implements WordStore {
      * @param word
      */
     @Override
-    public void addSkipWord(String word) {
-        skipWords.add(word);
+    public void addSkipWords(Collection<String> c) {
+        skipWords.addAll(skipWords);
     }
 
     /**

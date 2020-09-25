@@ -5,65 +5,30 @@
  */
 package wordtoplistgui;
 
+import static wordtoplistgui.WordTopListGUI.LOG;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 /**
- * This class manages the processing of the got URLList, collects the words of the contents in a Map.
+ * This class manages the processing of the got URLs, collects the words of the contents in a Collection.
  *
  * @author laszlop
  */
-public class WordCollector extends Thread {
+public class WordCollector implements Runnable {
 
-    public final static Logger LOG = Logger.getGlobal();
+    private final CollectorManager manager;
 
-    private final BlockingQueue<URL> urlQueue;
-    private final CountDownLatch latch;
-    private final Set<String> skipTags;
-    private final Set<String> skipWords;
-    private final SorterByFrequency store;
-    private boolean finished;
-    private BasicFrame frame;
-
-    static {
-        LOG.setUseParentHandlers(false);
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setFormatter(new SimpleFormatter() {
-            private static final String FORMAT = "[%1$tF %1$tT] [%2$-7s] %3$s %n";
-
-            @Override
-            public synchronized String format(LogRecord lr) {
-                return String.format(FORMAT, new Date(lr.getMillis()), lr.getLevel(), lr.getMessage());
-            }
-        });
-        LOG.addHandler(handler);
+    public WordCollector(CollectorManager manager) {
+        this.manager = manager;
     }
-
-    public WordCollector(BlockingQueue<URL> urlQueue, CountDownLatch latch, Set<String> skipWords, SorterByFrequency storer,
-            BasicFrame frame) {
-        this.urlQueue = urlQueue;
-        this.latch = latch;
-        this.skipTags = new HashSet<>(Arrays.asList("head", "style", "script")); // texts between these tags are ignored
-        this.skipWords = skipWords;
-        this.store = storer;
-        this.frame = frame;
-    }
-
+     
+    /**
+     * runs the threads
+     */
     @Override
     public void run() {
-        fillSkipWords();
         while (true) {
             URL url = takeURLfromQueue();
             if (url == null) {
@@ -76,13 +41,13 @@ public class WordCollector extends Thread {
                 LOG.severe("Processing of " + url.toString() + " failed.");
                 LOG.warning(ex.getMessage());
             } finally {
-                synchronized (latch) {
-                    latch.countDown();
+                synchronized (manager.getLatch()) {
+                    manager.getLatch().countDown();
                     LOG.info(Thread.currentThread().getName() + ": " + url.toString()
-                            + " finished. The current size of the latch is: " + latch.getCount());
-                    store.getFinishedURLs().add(url.toString());
-                    if (latch.getCount() == 0) {
-                        store.setFinished(true);
+                            + " finished. The current size of the latch is: " + manager.getLatch().getCount());
+                    manager.getFinishedURLs().add(url.toString());
+                    if (manager.getLatch().getCount() == 0) {
+                        manager.setFinished(true);
                     }
                 }
             }
@@ -95,18 +60,10 @@ public class WordCollector extends Thread {
      * @return next URL
      */
     private synchronized URL takeURLfromQueue() {
-        URL url = urlQueue.poll();
-        LOG.info(Thread.currentThread().getName() + ": " + url + " was taken out from the queue, " + urlQueue.size() + " URL-s remained.");
+        URL url = manager.getUrlQueue().poll();
+        LOG.info(Thread.currentThread().getName() + ": " + url + " was taken out from the queue, " + manager.getUrlQueue().size()
+                + " URL-s remained.");
         return url;
-    }
-
-    /**
-     * Fills up the skipWord Set using the overridden method of WordStore interface
-     */
-    public void fillSkipWords() {
-        for (String skipWord : skipWords) {
-            addSkipWord(skipWord);
-        }
     }
 
     /**
@@ -138,15 +95,15 @@ public class WordCollector extends Thread {
             char character = (char) value;
             if (character == '<') {
                 if (processable) {
-                    store.store(word.toString().toLowerCase());
-                    frame.updateLater();
+                    manager.storeWord(word);
+                    manager.getFrame().updateLater();
                 }
                 String nextTagString = buildTag(reader);
                 if (('/' + tag).equals(nextTagString)) {
                     return;
                 }
-                if (!skipTags.contains(tag) && !nextTagString.startsWith("/")) {
-                    boolean nextProcessable = processable && !skipTags.contains(nextTagString);
+                if (!manager.getSkipTags().contains(tag) && !nextTagString.startsWith("/")) {
+                    boolean nextProcessable = processable && !manager.getSkipTags().contains(nextTagString);
                     eatTag(nextTagString, reader, nextProcessable);
                 }
             }
@@ -154,8 +111,9 @@ public class WordCollector extends Thread {
                 word.append(character);
             } else {
                 if (processable) {
-                    store.store(word.toString().toLowerCase());
-                    frame.updateLater();
+                    //manager.getStorer().store(word.toString().toLowerCase());
+                    
+                    manager.getFrame().updateLater();
                 }
                 word.setLength(0);
             }
@@ -221,21 +179,5 @@ public class WordCollector extends Thread {
         }
         return openingTag;
     }
-
-    /**
-     * This method add the got word to the Set which contains the words to be ignored.
-     *
-     * @param word
-     */
-    public void addSkipWord(String word) {
-        store.addSkipWord(word);
-    }
-    
-    //=============GETTER================
-
-    public boolean isFinished() {
-        return finished;
-    } 
-    
-    
+ 
 }

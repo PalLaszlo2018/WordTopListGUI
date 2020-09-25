@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wordtoplistgui;
+package wordtoplistgui.sorters;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -15,6 +15,12 @@ import java.util.Map;
  */
 public class WordFreqComparator implements Comparator<Map.Entry<String, Integer>> {
 
+    /**
+     * sorts the two Map.Entries received as parameter
+     * @param wordFreq1
+     * @param wordFreq2
+     * @return 
+     */
     @Override
     public int compare(Map.Entry<String, Integer> wordFreq1, Map.Entry<String, Integer> wordFreq2) {
         Integer freq1 = wordFreq1.getValue();

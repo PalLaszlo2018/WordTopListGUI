@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wordtoplistgui;
+package wordtoplistgui.sorters;
 
-import static wordtoplistgui.WordCollector.LOG;
-
+import static wordtoplistgui.WordTopListGUI.LOG;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,24 +26,19 @@ public class SorterByFrequency implements WordStore {
     
     private final Map<String, Integer> wordFrequency = new HashMap<>();
     private final Set<String> skipWords = new HashSet<>();
-    private final List<String> finishedURLs = new ArrayList<>();
-    private boolean finished;
 
     /**
-     * Creates a copy of the actual state of the Map storing the result
-     * @return Map with actual result
-     */
-    
-    /**
-     * This method adds the got word to the Map which contains the found valid words.
-     *
-     * @param word
+     * adds the got word to the Map which contains the found valid words.
+     * @param charSequence 
      */
     @Override
-    public synchronized void store(String word) {
-        if (word.length() > 2 && !skipWords.contains(word)) {
-            wordFrequency.put(word, wordFrequency.getOrDefault(word, 0) + 1);
-            LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
+    public synchronized void store(CharSequence charSequence) {
+        if (charSequence.length() > 2) {
+            String word = charSequence.toString().toLowerCase();
+            if (!skipWords.contains(word)) {
+                wordFrequency.put(word, wordFrequency.getOrDefault(word, 0) + 1);
+                LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
+            }
         }
     }
     
@@ -53,8 +48,8 @@ public class SorterByFrequency implements WordStore {
      * @param word
      */
     @Override
-    public void addSkipWord(String word) {
-        skipWords.add(word);
+    public void addSkipWords(Collection<String> c) {
+        skipWords.addAll(c);
     }
 
     /**
@@ -88,30 +83,11 @@ public class SorterByFrequency implements WordStore {
      * Creates the sorted List of the entries of the Map.
      *
      * @return sorted List
-     */
+     */  
     public synchronized List<Map.Entry<String, Integer>> sortedWordsByFreq() {
         ArrayList<Map.Entry<String, Integer>> sortedList = new ArrayList<>(wordFrequency.entrySet());
         Collections.sort(sortedList, new WordFreqComparator());
         return sortedList;
     }
-    
-    //============GETTER==============
-
-    public List<String> getFinishedURLs() {
-        return finishedURLs;
-    }
-
-    public boolean isFinished() {
-        return finished;
-    } 
-    
-    //===========SETTER==============
-
-    public void setFinished(boolean finished) {
-        this.finished = finished;
-    }
-    
-    
-    
     
 }
