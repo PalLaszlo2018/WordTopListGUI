@@ -31,14 +31,16 @@ public class SorterByFrequency implements WordStore {
      * @param charSequence 
      */
     @Override
-    public synchronized void store(CharSequence charSequence) {
+    public synchronized boolean store(CharSequence charSequence) {
         if (charSequence.length() > 2) {
             String word = charSequence.toString().toLowerCase();
             if (!skipWords.contains(word)) {
                 wordFrequency.put(word, wordFrequency.getOrDefault(word, 0) + 1);
                 LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
             }
+            return true;
         }
+        return false;
     }
     
     /**

@@ -29,7 +29,7 @@ public class WordCollector implements Runnable {
     @Override
     public void run() {
         while (true) {
-            URL url = takeURLfromQueue();
+            URL url = manager.takeURLfromQueue();
             if (url == null) {
                 LOG.info(Thread.currentThread().getName() + ": No more URL in the queue. Current thread terminates!");
                 return;
@@ -40,29 +40,9 @@ public class WordCollector implements Runnable {
                 LOG.severe("Processing of " + url.toString() + " failed.");
                 LOG.warning(ex.getMessage());
             } finally {
-                synchronized (manager.getLatch()) {
-                    manager.getLatch().countDown();
-                    LOG.info(Thread.currentThread().getName() + ": " + url.toString()
-                            + " finished. The current size of the latch is: " + manager.getLatch().getCount());
-                    manager.getFinishedURLs().add(url.toString());
-                    if (manager.getLatch().getCount() == 0) {
-                        manager.setFinished(true);
-                    }
-                }
+                manager.decreaseLatch(url.toString());
             }
         }
-    }
-
-    /**
-     * Takes out the next URL form the queue thread safe way
-     *
-     * @return next URL
-     */
-    private synchronized URL takeURLfromQueue() {
-        URL url = manager.getUrlQueue().poll();
-        LOG.info(Thread.currentThread().getName() + ": " + url + " was taken out from the queue, " + manager.getUrlQueue().size()
-                + " URL-s remained.");
-        return url;
     }
 
     /**
@@ -95,14 +75,13 @@ public class WordCollector implements Runnable {
             if (character == '<') {
                 if (processable) {
                     manager.storeWord(word);
-                    manager.getFrame().updateLater();
                 }
                 String nextTagString = buildTag(reader);
                 if (('/' + tag).equals(nextTagString)) {
                     return;
                 }
-                if (!manager.getSkipTags().contains(tag) && !nextTagString.startsWith("/")) {
-                    boolean nextProcessable = processable && !manager.getSkipTags().contains(nextTagString);
+                if (!manager.isSkipTag(tag) && !nextTagString.startsWith("/")) {
+                    boolean nextProcessable = processable && !manager.isSkipTag(nextTagString);
                     eatTag(nextTagString, reader, nextProcessable);
                 }
             }
@@ -110,9 +89,7 @@ public class WordCollector implements Runnable {
                 word.append(character);
             } else {
                 if (processable) {
-                    //manager.getStorer().store(word.toString().toLowerCase());
-                    
-                    manager.getFrame().updateLater();
+                    manager.storeWord(word);                    
                 }
                 word.setLength(0);
             }

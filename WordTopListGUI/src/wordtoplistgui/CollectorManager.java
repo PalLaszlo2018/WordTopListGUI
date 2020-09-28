@@ -56,9 +56,39 @@ public class CollectorManager {
      * 
      * @param charSequence 
      */    
-    public void storeWord(CharSequence charSequence){
-        store.store(charSequence);
+    void storeWord(CharSequence charSequence){
+        if (store.store(charSequence)) {
+            frame.updateLater();
+        }
     }
+    
+    boolean isSkipTag(String str) {
+        return skipTags.contains(str);
+    }
+    
+    /**
+     * Takes out the next URL form the queue thread safe way
+     *
+     * @return next URL
+     */
+    synchronized URL takeURLfromQueue() {
+        URL url = urlQueue.poll();
+        LOG.info(Thread.currentThread().getName() + ": " + url + " was taken out from the queue, " + urlQueue.size()
+                + " URL-s remained.");
+        return url;
+    }
+
+    synchronized void decreaseLatch(String urlString) {
+        latch.countDown();
+        LOG.info(Thread.currentThread().getName() + ": " + urlString + " finished. The current size of the latch is: "
+                + latch.getCount());
+        finishedURLs.add(urlString);
+        if (latch.getCount() == 0) {
+            finished = true;
+        }
+        frame.updateLater();
+    }
+
         
     //===========GETTERS============
     
@@ -69,14 +99,6 @@ public class CollectorManager {
     public List<String> getFinishedURLs() {
         return finishedURLs;
     }
-
-    public Set<String> getSkipWords() {
-        return skipWords;
-    }
-
-    public Set<String> getSkipTags() {
-        return skipTags;
-    }
     
     public BlockingQueue<URL> getUrlQueue() {
         return urlQueue;
@@ -84,10 +106,6 @@ public class CollectorManager {
 
     public CountDownLatch getLatch() {
         return latch;
-    }
-
-    public BasicFrame getFrame() {
-        return frame;
     }
 
     public boolean isFinished() {
@@ -113,10 +131,6 @@ public class CollectorManager {
     public void setFrame(BasicFrame frame) {
         this.frame = frame;
     }
-
-    public void setFinished(boolean finished) {
-        this.finished = finished;
-    }
-   
+ 
 
 }

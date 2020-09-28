@@ -14,7 +14,7 @@ import java.util.Collection;
  */
 public interface WordStore {
     
-    public void store(CharSequence c);
+    public boolean store(CharSequence c);
     
     public void addSkipWords(Collection<String> c);
     

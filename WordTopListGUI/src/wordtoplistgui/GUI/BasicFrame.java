@@ -12,7 +12,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -38,18 +40,36 @@ public class BasicFrame extends javax.swing.JFrame {
     private JTable result;
     private DefaultTableModel resultModel;
     private final int TABLE_SIZE = 53;
-    private boolean update;
+    private volatile boolean update;
+    private ResourceBundle labels;
+    
+    /**
+     * Inner class for refreshing the page 
+     */     
+    class Refresher implements Runnable {
+
+        @Override
+        public synchronized void run() {
+            update = false;
+            displayResult();
+            displayprocessedURLs();
+            displayFinished();
+        }
+    }
 
     /**
      * Creates new form BasicFrame
      */
-    public BasicFrame (CollectorManager manager) {
+    public BasicFrame(CollectorManager manager) {
         super("WORD TOPLIST CREATOR");
+        Locale locale = new Locale("en", "US");
+        labels = ResourceBundle.getBundle("wordtoplistgui.GUI.frameLabels", locale);
         initComponents();
         initExtraComponents();
         initFields();
         setSize(800, 1000);
         this.manager = manager;
+
     }
     
     /**
@@ -60,15 +80,7 @@ public class BasicFrame extends javax.swing.JFrame {
             return;
         }
         update = true;
-        Runnable refresher = new Runnable() {
-            @Override
-            public void run() {
-                update = false;
-                displayResult();
-                displayprocessedURLs();
-                displayFinished();
-            }
-        };
+        Runnable refresher = new Refresher();
         SwingUtilities.invokeLater(refresher);
     }
 
@@ -77,16 +89,19 @@ public class BasicFrame extends javax.swing.JFrame {
      *
      * @param map
      */
-    public void displayResult() {
+    void displayResult() {
         List<Map.Entry<String, Integer>> sortedList = manager.getSortedWords();
         int displayedRows = Math.min(TABLE_SIZE, sortedList.size());
-        for (int row = 0; row < displayedRows; row++) {
-            if (row >= resultModel.getRowCount()) {
-                resultModel.addRow(new String[]{sortedList.get(row).getKey(), Integer.toString(sortedList.get(row).getValue())});
-            } else {
-                resultModel.setValueAt(sortedList.get(row).getKey(), row, 0);
-                resultModel.setValueAt(Integer.toString(sortedList.get(row).getValue()), row, 1);
+        int rowsInModel = resultModel.getRowCount();
+        if (displayedRows > rowsInModel) {
+            for (int i = 0; i < displayedRows - rowsInModel; i++) {
+                resultModel.addRow(new Object[]{"", ""});
             }
+        }
+        for (int row = 0; row < displayedRows; row++) {
+            Map.Entry<String, Integer> nextElem = sortedList.get(row);
+            resultModel.setValueAt(nextElem.getKey(), row, 0);
+            resultModel.setValueAt(nextElem.getValue(), row, 1);
         }
     }
 
@@ -95,18 +110,19 @@ public class BasicFrame extends javax.swing.JFrame {
      *
      * @param finishedURL
      */
-    public void displayprocessedURLs() {
+    void displayprocessedURLs() {
         List<String> processedURLs = manager.getFinishedURLs();
-        listModel.clear();
-        for (int i = 0; i < processedURLs.size(); i++) {
-            listModel.addElement(processedURLs.get(i));
+        if (processedURLs.size() > listModel.size()) {
+            for (int i = listModel.size(); i < processedURLs.size(); i++) {
+                listModel.addElement(processedURLs.get(i));
+            }
         }
     }
     
     /**
      * after all URLs were processed, it prints a message to inform the user
      */
-    public void displayFinished() {
+    void displayFinished() {
         boolean allURLsFinished = manager.isFinished();
         if (allURLsFinished) {
             startURLs.setText("Processing finished");
@@ -119,7 +135,7 @@ public class BasicFrame extends javax.swing.JFrame {
      * @param maxThread
      * @throws Exception 
      */
-    public void setCollectorManager(List<URL> urlList, int maxThread) throws Exception {
+    void initCollectorManager(List<URL> urlList, int maxThread) throws Exception {
         manager.setFrame(this);
         manager.setMaxThreads(maxThread);
         manager.setURLs(urlList);
@@ -153,51 +169,55 @@ public class BasicFrame extends javax.swing.JFrame {
 
     private void initExtraComponents() {
 
-        JLabel URLsToProcess = new JLabel("URLs to process:");
+        JLabel URLsToProcess = new JLabel(labels.getString("URLtoProcessLabel"));
         URLsToProcess.setBounds(50, 20, 150, 30);
         add(URLsToProcess);
 
-        JLabel threadLabel = new JLabel("Number of threads:");
+        JLabel threadLabel = new JLabel(labels.getString("threadCount"));
         threadLabel.setBounds(50, 450, 150, 30);
-        add(URLsToProcess);
+        add(threadLabel);
 
-        JLabel processedURLs = new JLabel("Processed URLs:");
+        JLabel processedURLs = new JLabel(labels.getString("proseccedURLsLabel"));
         processedURLs.setBounds(50, 520, 150, 30);
         add(processedURLs);
-
-        JLabel mostCommonWords = new JLabel("Most common words: ");
+        
+        JLabel mostCommonWords = new JLabel(labels.getString("resultLabel"));
         mostCommonWords.setBounds(450, 20, 200, 30);
         add(mostCommonWords);
 
-        JButton button = new JButton("Do it");
+        JButton button = new JButton(labels.getString("doitLabel"));
         button.setBounds(250, 450, 150, 60);
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                List<URL> urlList = new ArrayList<>();
-                String[] URLs = startURLs.getText().split("\n");
-                for (int i = 0; i < URLs.length; i++) {
-                    try {
-                        urlList.add(new URL(URLs[i]));
-                    } catch (MalformedURLException ex) {
-                        LOG.severe(URLs[i] + " is not a proper URL.");
-                    }
-                }
-                int maxThread = 4;
-                if (Character.isDigit(threadCount.getText().charAt(0))) {
-                    maxThread = Integer.parseInt(threadCount.getText());
-                    threadCount.setText(Integer.toString(maxThread));
-                } else {
-                    threadCount.setBackground(Color.red);
-                }
-                try {
-                    setCollectorManager(urlList, maxThread);
-                } catch (Exception ex) {
-                    LOG.severe("Application failed.");;
-                }
+                processUserInput();
             }
         });
         add(button);
+    }
+    
+    private void processUserInput() {
+        List<URL> urlList = new ArrayList<>();
+        String[] URLs = startURLs.getText().split("\n");
+        for (int i = 0; i < URLs.length; i++) {
+            try {
+                urlList.add(new URL(URLs[i]));
+            } catch (MalformedURLException ex) {
+                LOG.severe(URLs[i] + " is not a proper URL.");
+            }
+        }
+        int maxThread = 4;
+        if (Character.isDigit(threadCount.getText().charAt(0))) {
+            maxThread = Integer.parseInt(threadCount.getText());
+            threadCount.setText(Integer.toString(maxThread));
+        } else {
+            threadCount.setBackground(Color.red);
+        }
+        try {
+            initCollectorManager(urlList, maxThread);
+        } catch (Exception ex) {
+            LOG.severe("Application failed.");;
+        }
     }
 
     /**

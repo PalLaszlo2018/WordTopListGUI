@@ -13,13 +13,19 @@ import wordtoplistgui.GUI.BasicFrame;
 
 /**
  * The starting point of the application, initializes Logger and Frame
+ *
  * @author laszlop
  */
 public class WordTopListGUI {
 
     public final static Logger LOG = Logger.getGlobal();
 
-    static {
+    public static void main(String[] args) {
+        ensureLogger();
+        BasicFrame frame = new BasicFrame(new CollectorManager());
+    }
+
+    private static void ensureLogger() {
         LOG.setUseParentHandlers(false);
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter() {
@@ -31,9 +37,5 @@ public class WordTopListGUI {
             }
         });
         LOG.addHandler(handler);
-    }
-
-    public static void main(String[] args) {
-        BasicFrame frame = new BasicFrame(new CollectorManager());
     }
 }
