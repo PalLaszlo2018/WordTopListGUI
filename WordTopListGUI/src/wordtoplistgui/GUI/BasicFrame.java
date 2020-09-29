@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -25,7 +24,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
-import wordtoplistgui.CollectorManager;
 import wordtoplistgui.CollectorObserver;
 import wordtoplistgui.CollectorSettings;
 import wordtoplistgui.DataStore;
@@ -205,11 +203,10 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     }
     
     private void processUserInput() {
-        List<URL> urlList = new ArrayList<>();
         String[] URLStrings = startURLs.getText().split("\n");
         for (int i = 0; i < URLStrings.length; i++) {
             try {
-                urlList.add(new URL(URLStrings[i]));
+                URLs.add(new URL(URLStrings[i]));
             } catch (MalformedURLException ex) {
                 LOG.severe(URLStrings[i] + " is not a proper URL.");
             }
@@ -222,31 +219,12 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
             threadCount.setBackground(Color.red);
         }
         try {
-            initCollectorSettings(maxThreads, urlList);
             actionObserver.doAction();
         } catch (Exception ex) {
             LOG.severe("Application failed.");;
         }
     }
-    
-    private void initCollectorSettings(int maxThread, List<URL> urlList){
-        actionObserver.setMaxThreads(maxThread);
-        actionObserver.setURLs(urlList);
-    }
-            
-    
-    /**
-     * sets the important fields of the CollectorManager
-     * @param urlList
-     * @param maxThread
-     * @throws Exception 
-     */
-//    void initCollectorManager(List<URL> urlList, int maxThread) throws Exception {
-//        manager.setFrame(this);
-//        manager.setMaxThreads(maxThread);
-//        manager.setURLs(urlList);
-//        actionObserver.doAction();
-//    }
+         
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of

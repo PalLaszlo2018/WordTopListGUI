@@ -40,6 +40,9 @@ public class CollectorManager implements ActionObserver, DataProvider {
     private CollectorSettings collectorSettings;
     private CollectorObserver collectorObserver;
    
+    
+    //Az ActionObserver-be nem kellenek a plusz metódusok. Helyette a CollectorSettings-ről kérd le a CollectorManager.doAction() metódusban.
+    // A CollectorSettings-t implementálja a BasicFrame szóval meg fogjuk kapni ami nekünk kell.
    
     /**
      * Creates Threads and starts them
@@ -48,6 +51,12 @@ public class CollectorManager implements ActionObserver, DataProvider {
     public void doAction() {
         store.addSkipWords(skipWords);
         maxThreads = collectorSettings.getMaxThreads();
+        System.out.println(maxThreads);
+        Collection<URL> urlCollection = collectorSettings.getURLs();
+        System.out.println(urlCollection);
+        urlQueue = new ArrayBlockingQueue(urlCollection.size(), false, urlCollection);
+        System.out.println(urlQueue);
+        latch = new CountDownLatch(urlCollection.size());
         List<Thread> threadList = new ArrayList<>();
         for (int i = 0; i < maxThreads; i++) {
             threadList.add(new Thread(new WordCollector(this)));
@@ -127,11 +136,6 @@ public class CollectorManager implements ActionObserver, DataProvider {
    
           
     //==========SETTERS===========
-    
-    public void setURLs(Collection<URL> urlCollection) {
-        urlQueue = new ArrayBlockingQueue(urlCollection.size(), false, urlCollection);
-        latch = new CountDownLatch(urlCollection.size());
-    }
 
     public void setMaxThreads(int maxThreads) {
         if (maxThreads < 1) {

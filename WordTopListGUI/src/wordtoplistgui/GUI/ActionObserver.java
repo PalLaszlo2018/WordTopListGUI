@@ -18,9 +18,5 @@ import java.util.Collection;
 public interface ActionObserver {
 
     void doAction();
-    
-    void setMaxThreads(int max);
-    
-    void setURLs(Collection<URL> coll);
 
 }
