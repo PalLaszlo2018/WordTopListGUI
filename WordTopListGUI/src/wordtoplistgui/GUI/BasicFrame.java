@@ -46,7 +46,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     private volatile boolean update;
     private ResourceBundle labels;
     private int maxThreads;
-    private List<URL>URLs;
+    private List<URL>URLs = new ArrayList<>();
 
     @Override
     public int getMaxThreads() {
