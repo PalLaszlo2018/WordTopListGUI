@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -25,14 +26,18 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import wordtoplistgui.CollectorManager;
+import wordtoplistgui.CollectorObserver;
+import wordtoplistgui.CollectorSettings;
+import wordtoplistgui.DataStore;
 
 /**
  * The GUI of the application
  * @author laszlop
  */
-public class BasicFrame extends javax.swing.JFrame {
+public class BasicFrame extends javax.swing.JFrame implements CollectorSettings, CollectorObserver{
 
-    private final CollectorManager manager;
+    private ActionObserver actionObserver;
+    private DataProvider dataProvider;
     private JTextArea startURLs;
     private JTextField threadCount;
     private final DefaultListModel listModel = new DefaultListModel();
@@ -42,6 +47,23 @@ public class BasicFrame extends javax.swing.JFrame {
     private final int TABLE_SIZE = 53;
     private volatile boolean update;
     private ResourceBundle labels;
+    private int maxThreads;
+    private List<URL>URLs;
+
+    @Override
+    public int getMaxThreads() {
+        return maxThreads;
+    }
+
+    @Override
+    public Collection<URL> getURLs() {
+        return URLs;
+    }
+
+    @Override
+    public void changed() {
+        updateLater();
+    }
     
     /**
      * Inner class for refreshing the page 
@@ -60,7 +82,7 @@ public class BasicFrame extends javax.swing.JFrame {
     /**
      * Creates new form BasicFrame
      */
-    public BasicFrame(CollectorManager manager) {
+    public BasicFrame() {
         super("WORD TOPLIST CREATOR");
         Locale locale = new Locale("en", "US");
         labels = ResourceBundle.getBundle("wordtoplistgui.GUI.frameLabels", locale);
@@ -68,14 +90,12 @@ public class BasicFrame extends javax.swing.JFrame {
         initExtraComponents();
         initFields();
         setSize(800, 1000);
-        this.manager = manager;
-
     }
     
     /**
      * To refresh the fields
      */
-    public void updateLater() {
+    private void updateLater() {
         if (update) {
             return;
         }
@@ -83,14 +103,14 @@ public class BasicFrame extends javax.swing.JFrame {
         Runnable refresher = new Refresher();
         SwingUtilities.invokeLater(refresher);
     }
-
+    
     /**
      * Displays the found words and its frequencies on the frame
      *
      * @param map
      */
     void displayResult() {
-        List<Map.Entry<String, Integer>> sortedList = manager.getSortedWords();
+        List<DataStore> sortedList = dataProvider.getSortedWords();
         int displayedRows = Math.min(TABLE_SIZE, sortedList.size());
         int rowsInModel = resultModel.getRowCount();
         if (displayedRows > rowsInModel) {
@@ -99,8 +119,8 @@ public class BasicFrame extends javax.swing.JFrame {
             }
         }
         for (int row = 0; row < displayedRows; row++) {
-            Map.Entry<String, Integer> nextElem = sortedList.get(row);
-            resultModel.setValueAt(nextElem.getKey(), row, 0);
+            DataStore nextElem = sortedList.get(row);
+            resultModel.setValueAt(nextElem.getWord(), row, 0);
             resultModel.setValueAt(nextElem.getValue(), row, 1);
         }
     }
@@ -111,7 +131,7 @@ public class BasicFrame extends javax.swing.JFrame {
      * @param finishedURL
      */
     void displayprocessedURLs() {
-        List<String> processedURLs = manager.getFinishedURLs();
+        List<String> processedURLs = dataProvider.getFinishedURLs();
         if (processedURLs.size() > listModel.size()) {
             for (int i = listModel.size(); i < processedURLs.size(); i++) {
                 listModel.addElement(processedURLs.get(i));
@@ -123,24 +143,12 @@ public class BasicFrame extends javax.swing.JFrame {
      * after all URLs were processed, it prints a message to inform the user
      */
     void displayFinished() {
-        boolean allURLsFinished = manager.isFinished();
+        boolean allURLsFinished = dataProvider.isFinished();
         if (allURLsFinished) {
             startURLs.setText("Processing finished");
         }
     }
     
-    /**
-     * sets the important fields of the CollectorManager
-     * @param urlList
-     * @param maxThread
-     * @throws Exception 
-     */
-    void initCollectorManager(List<URL> urlList, int maxThread) throws Exception {
-        manager.setFrame(this);
-        manager.setMaxThreads(maxThread);
-        manager.setURLs(urlList);
-        manager.runThreads();
-    }
 
     private void initFields() {
 
@@ -198,27 +206,47 @@ public class BasicFrame extends javax.swing.JFrame {
     
     private void processUserInput() {
         List<URL> urlList = new ArrayList<>();
-        String[] URLs = startURLs.getText().split("\n");
-        for (int i = 0; i < URLs.length; i++) {
+        String[] URLStrings = startURLs.getText().split("\n");
+        for (int i = 0; i < URLStrings.length; i++) {
             try {
-                urlList.add(new URL(URLs[i]));
+                urlList.add(new URL(URLStrings[i]));
             } catch (MalformedURLException ex) {
-                LOG.severe(URLs[i] + " is not a proper URL.");
+                LOG.severe(URLStrings[i] + " is not a proper URL.");
             }
         }
-        int maxThread = 4;
+        maxThreads = 4;
         if (Character.isDigit(threadCount.getText().charAt(0))) {
-            maxThread = Integer.parseInt(threadCount.getText());
-            threadCount.setText(Integer.toString(maxThread));
+            maxThreads = Integer.parseInt(threadCount.getText());
+            threadCount.setText(Integer.toString(maxThreads));
         } else {
             threadCount.setBackground(Color.red);
         }
         try {
-            initCollectorManager(urlList, maxThread);
+            initCollectorSettings(maxThreads, urlList);
+            actionObserver.doAction();
         } catch (Exception ex) {
             LOG.severe("Application failed.");;
         }
     }
+    
+    private void initCollectorSettings(int maxThread, List<URL> urlList){
+        actionObserver.setMaxThreads(maxThread);
+        actionObserver.setURLs(urlList);
+    }
+            
+    
+    /**
+     * sets the important fields of the CollectorManager
+     * @param urlList
+     * @param maxThread
+     * @throws Exception 
+     */
+//    void initCollectorManager(List<URL> urlList, int maxThread) throws Exception {
+//        manager.setFrame(this);
+//        manager.setMaxThreads(maxThread);
+//        manager.setURLs(urlList);
+//        actionObserver.doAction();
+//    }
 
     /**
      * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of
@@ -246,4 +274,15 @@ public class BasicFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
+
+    //================SETTERS===================
+
+    
+    public void setActionObserver(ActionObserver actionObserver) {
+        this.actionObserver = actionObserver;
+    }
+
+    public void setDataProvider(DataProvider dataProvider) {
+        this.dataProvider = dataProvider;
+    }    
 }

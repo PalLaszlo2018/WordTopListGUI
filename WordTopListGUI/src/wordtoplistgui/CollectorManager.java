@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import wordtoplistgui.GUI.ActionObserver;
+import wordtoplistgui.GUI.DataProvider;
 
 
 /**
@@ -25,7 +27,7 @@ import java.util.concurrent.CountDownLatch;
  *
  * @author laszlop
  */
-public class CollectorManager {
+public class CollectorManager implements ActionObserver, DataProvider {
 
     private int maxThreads;
     private final Set<String> skipWords = new HashSet<>(Arrays.asList("and", "but", "for", "that", "the", "with", "www"));
@@ -33,16 +35,19 @@ public class CollectorManager {
     private final SorterByFrequency store = new SorterByFrequency();
     private BlockingQueue<URL> urlQueue;
     private CountDownLatch latch;
-    private BasicFrame frame;
     private final List<String> finishedURLs = new ArrayList<>();
     private boolean finished;
+    private CollectorSettings collectorSettings;
+    private CollectorObserver collectorObserver;
    
    
     /**
      * Creates Threads and starts them
      */    
-    public void runThreads() throws Exception {
+    @Override
+    public void doAction() {
         store.addSkipWords(skipWords);
+        maxThreads = collectorSettings.getMaxThreads();
         List<Thread> threadList = new ArrayList<>();
         for (int i = 0; i < maxThreads; i++) {
             threadList.add(new Thread(new WordCollector(this)));
@@ -58,7 +63,7 @@ public class CollectorManager {
      */    
     void storeWord(CharSequence charSequence){
         if (store.store(charSequence)) {
-            frame.updateLater();
+            collectorObserver.changed();
         }
     }
     
@@ -86,16 +91,23 @@ public class CollectorManager {
         if (latch.getCount() == 0) {
             finished = true;
         }
-        frame.updateLater();
+        collectorObserver.changed();
     }
 
         
     //===========GETTERS============
     
-    public List<Map.Entry<String, Integer>> getSortedWords() {
-        return store.sortedWordsByFreq();
+    @Override
+    public List<DataStore> getSortedWords() {
+        List<Map.Entry<String, Integer>> entryList = store.sortedWordsByFreq();
+        List<DataStore> dataList = new ArrayList<>();
+        for (int i = 0; i < entryList.size(); i++) {
+            dataList.add(new DataStore(entryList.get(i).getKey(), entryList.get(i).getValue()));
+        }
+        return dataList;
     }
-
+    
+    @Override
     public List<String> getFinishedURLs() {
         return finishedURLs;
     }
@@ -108,6 +120,7 @@ public class CollectorManager {
         return latch;
     }
 
+    @Override
     public boolean isFinished() {
         return finished;
     }
@@ -128,9 +141,12 @@ public class CollectorManager {
         this.maxThreads = maxThreads;
     }
 
-    public void setFrame(BasicFrame frame) {
-        this.frame = frame;
+    public void setCollectorSettings(CollectorSettings collectorSettings) {
+        this.collectorSettings = collectorSettings;
     }
- 
 
+    public void setCollectorObserver(CollectorObserver collectorObserver) {
+        this.collectorObserver = collectorObserver;
+    }
 }
+

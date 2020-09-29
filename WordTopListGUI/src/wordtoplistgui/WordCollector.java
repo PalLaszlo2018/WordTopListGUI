@@ -18,6 +18,7 @@ import java.net.URL;
 public class WordCollector implements Runnable {
 
     private final CollectorManager manager;
+    private BufferedReader reader;
 
     public WordCollector(CollectorManager manager) {
         this.manager = manager;
@@ -53,9 +54,15 @@ public class WordCollector implements Runnable {
      */
     public void processContent(URL url) throws IOException {
         LOG.info("Processing of the homepage " + url.toString() + " started.");
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+        try {
+            reader = new BufferedReader(new InputStreamReader(url.openStream()));
             String openingTag = findOpeningTag(reader);
             eatTag(openingTag, reader, true);
+        } catch (IOException e) {
+            LOG.severe("Processing of the homepage " + url.toString() + " failed.");
+        } finally {
+            reader.close();
+            reader = null;
         }
     }
 

@@ -7,6 +7,9 @@
 
 package wordtoplistgui.GUI;
 
+import java.net.URL;
+import java.util.Collection;
+
 /**
  * The action observer will be noticed when the user do something important on the GUI.
  * @version $Revision$ $LastChangedDate$
@@ -15,5 +18,9 @@ package wordtoplistgui.GUI;
 public interface ActionObserver {
 
     void doAction();
+    
+    void setMaxThreads(int max);
+    
+    void setURLs(Collection<URL> coll);
 
 }

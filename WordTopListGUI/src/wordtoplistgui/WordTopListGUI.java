@@ -22,7 +22,12 @@ public class WordTopListGUI {
 
     public static void main(String[] args) {
         ensureLogger();
-        BasicFrame frame = new BasicFrame(new CollectorManager());
+        CollectorManager collectorManager = new CollectorManager();
+        BasicFrame frame = new BasicFrame();
+        collectorManager.setCollectorSettings(frame);
+        collectorManager.setCollectorObserver(frame);
+        frame.setActionObserver(collectorManager);
+        frame.setDataProvider(collectorManager);
     }
 
     private static void ensureLogger() {

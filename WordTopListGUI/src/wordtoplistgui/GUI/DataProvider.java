@@ -9,6 +9,7 @@ package wordtoplistgui.GUI;
 
 import java.util.List;
 import java.util.Map;
+import wordtoplistgui.DataStore;
 
 /**
  * The implementers provide data about the current status of the collecting process.
@@ -17,11 +18,11 @@ import java.util.Map;
  */
 public interface DataProvider {
 
-    // TODO: Maybe an own data class would be better, instead of using Map.Entry.
-    List<Map.Entry<String, Integer>> getSortedWords();
+    List<DataStore> getSortedWords();
     
     List<String> getFinishedURLs();
     
     boolean isFinished();
+    
 
 }
