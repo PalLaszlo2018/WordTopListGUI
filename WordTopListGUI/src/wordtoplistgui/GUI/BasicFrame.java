@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import javax.annotation.Nonnull;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -34,40 +35,101 @@ import wordtoplistgui.DataStore;
  */
 public class BasicFrame extends javax.swing.JFrame implements CollectorSettings, CollectorObserver{
 
+    /**
+     * Assigns an action observer that will notice when the user do something important on the GUI.
+     */
+    @Nonnull
     private ActionObserver actionObserver;
+    /**
+     * Assigns a data provider that will store the collected words and the appropriate values.
+     */
+    @Nonnull
     private DataProvider dataProvider;
+    /**
+     * Accepts the URls to be processed from the user.
+     */
+    @Nonnull
     private JTextArea startURLs;
+    /**
+     * Accepts the number of threads from the user.
+     */
+    @Nonnull
     private JTextField threadCount;
-    private final DefaultListModel listModel = new DefaultListModel();
+    /**
+     * Displays the already processed URLs.
+     */
+    @Nonnull
     private JList finishedURLs;
+    /**
+     * The ListModel behind the finihsedURLs.
+     */
+    private final DefaultListModel listModel = new DefaultListModel();
+    /**
+     * Displays the results of the application in a window.
+     */
+    @Nonnull
     private JTable result;
+    /**
+     * The TableModel behind the finihsedURLs.
+     */
+    @Nonnull
     private DefaultTableModel resultModel;
+    /**
+     * The number of the rows that can be displayed in the given table.
+     */
     private final int TABLE_SIZE = 53;
+    /**
+     * Marks whether the update process started or not.
+     */
     private volatile boolean update;
+    /**
+     * Stores the texts of various labels.
+     */
+    @Nonnull
     private ResourceBundle labels;
+    /**
+     * Maximal number of threads.
+     */
     private int maxThreads;
+    /**
+     * Stores the list of URL-s received form the user.
+     */
     private List<URL>URLs = new ArrayList<>();
 
+    /**
+     * Delivers the maximum number of threads
+     * @return 
+     */
     @Override
     public int getMaxThreads() {
         return maxThreads;
     }
-
+    
+    /**
+     * Delivers the collection of URLs to be processed.
+     * @return 
+     */
     @Override
     public Collection<URL> getURLs() {
         return URLs;
     }
-
+    
+    /**
+     * Updates the display according to the changes in collected data.
+     */
     @Override
     public void changed() {
         updateLater();
     }
     
     /**
-     * Inner class for refreshing the page 
+     * Inner class for refreshing the page. 
      */     
     class Refresher implements Runnable {
 
+        /**
+         * Refreshes the results: collected words + values, processed URLs, end of the entire procedure.
+         */
         @Override
         public synchronized void run() {
             update = false;
@@ -78,7 +140,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     }
 
     /**
-     * Creates new form BasicFrame
+     * Creates an instance of the BasicFrame.
      */
     public BasicFrame() {
         super("WORD TOPLIST CREATOR");
@@ -91,7 +153,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     }
     
     /**
-     * To refresh the fields
+     * To refresh the fields.
      */
     private void updateLater() {
         if (update) {
@@ -104,7 +166,6 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     
     /**
      * Displays the found words and its frequencies on the frame
-     *
      * @param map
      */
     void displayResult() {
@@ -125,7 +186,6 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
 
     /**
      * Displays the full list of finished URLs
-     *
      * @param finishedURL
      */
     void displayprocessedURLs() {
@@ -138,7 +198,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     }
     
     /**
-     * after all URLs were processed, it prints a message to inform the user
+     * After all URLs were processed, it prints a message to inform the user.
      */
     void displayFinished() {
         boolean allURLsFinished = dataProvider.isFinished();
@@ -255,12 +315,19 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
 
     //================SETTERS===================
 
-    
-    public void setActionObserver(ActionObserver actionObserver) {
+    /**
+     * Assigns the given action observer to the instance.
+     * @param actionObserver 
+     */   
+    public void setActionObserver(@Nonnull ActionObserver actionObserver) {
         this.actionObserver = actionObserver;
     }
 
-    public void setDataProvider(DataProvider dataProvider) {
+    /**
+     * Assigns the given data provider to the instance.
+     * @param dataProvider 
+     */
+    public void setDataProvider(@Nonnull DataProvider dataProvider) {
         this.dataProvider = dataProvider;
     }    
 }

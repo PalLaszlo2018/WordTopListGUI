@@ -9,11 +9,13 @@ package wordtoplistgui;
 
 /**
  * The observer will be noticed when something changed during the word collecting process.
- * @version $Revision$ $LastChangedDate$
- * @author $Author$
+ * @author Janos Aron Kiss
  */
 public interface CollectorObserver {
-
+    
+    /**
+     * Runs the given code after change was realized.
+     */
     void changed();
 
 }

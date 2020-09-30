@@ -9,17 +9,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import javax.annotation.Nonnull;
 
 /**
  * This class manages the processing of the got URLs, collects the words of the contents in a Collection.
- *
  * @author laszlop
  */
 public class WordCollector implements Runnable {
 
+    @Nonnull
     private final CollectorManager manager;
+    @Nonnull
     private BufferedReader reader;
 
+    /**
+     * creates a new instance with the given CollectorManager
+     * @param manager 
+     */
     public WordCollector(CollectorManager manager) {
         this.manager = manager;
     }
@@ -48,11 +54,10 @@ public class WordCollector implements Runnable {
 
     /**
      * Opens a reader for the got URL, finds the opening tag, and starts the substantive work by calling the eatTag method.
-     *
      * @param url
      * @throws IOException
      */
-    public void processContent(URL url) throws IOException {
+    public void processContent(@Nonnull URL url) throws IOException {
         LOG.info("Processing of the homepage " + url.toString() + " started.");
         try {
             reader = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -69,12 +74,11 @@ public class WordCollector implements Runnable {
     /**
      * Reads the content of the URL, the found words will be put into a Map, found opening tags start the method recursive way,
      * found closing tags close the (sub)method.
-     *
      * @param tag
      * @param reader
      * @throws IOException
      */
-    private void eatTag(String tag, BufferedReader reader, boolean processable) throws IOException {
+    private void eatTag(@Nonnull String tag, @Nonnull BufferedReader reader, @Nonnull boolean processable) throws IOException {
         int value;
         StringBuilder word = new StringBuilder();
         while ((value = reader.read()) != -1) {
@@ -105,12 +109,11 @@ public class WordCollector implements Runnable {
 
     /**
      * This method builds up the tag from the read characters.
-     *
      * @param reader
      * @return tag
      * @throws IOException
      */
-    private String buildTag(BufferedReader reader) throws IOException {
+    private String buildTag(@Nonnull BufferedReader reader) throws IOException {
         StringBuilder tag = new StringBuilder();
         StringBuilder full = new StringBuilder();
         String tagString = "";
@@ -145,12 +148,11 @@ public class WordCollector implements Runnable {
     
     /**
      * This method finds the first opening tag, this tag is needed to start the substantive eatTag method.
-     *
      * @param reader
      * @return opening tag
      * @throws IOException
      */
-    private String findOpeningTag(BufferedReader reader) throws IOException {
+    private String findOpeningTag(@Nonnull BufferedReader reader) throws IOException {
         int value;
         String openingTag = "";
         while ((value = reader.read()) != -1) {

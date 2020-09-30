@@ -16,23 +16,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.annotation.Nonnull;
 
 
 /**
  * This class can be used to create sorting by vowel frequency
- *
  * @author laszlop
  */
 public class SorterByVowelFreq implements WordStore {
-
+    
+    /**
+     * Map to store the found words as keys, and the number of their vowel frequencies as values.
+     */
     private final Map<String, Double> wordVowelFreq = new HashMap<>();
+    /**
+     * Set of words which will be not stored.
+     */
     private final Set<String> skipWords = new HashSet<>();
     private final Set<Character> vowels = new HashSet<>(Arrays.asList('a', 'e', 'i', 'o', 'u'));
 
     /**
      * This method adds the got word and its vowel frequency to the Map which contains the found valid words.
-     *
-     * @param word
      */
     @Override
     public synchronized boolean store(CharSequence charSequence) {
@@ -48,7 +52,6 @@ public class SorterByVowelFreq implements WordStore {
 
     /**
      * counts the vowels in the input word
-     *
      * @param word
      * @return number of vowels
      */
@@ -63,12 +66,11 @@ public class SorterByVowelFreq implements WordStore {
     }
 
     /**
-     * This method adds the got word to the Set which contains the words to be ignored.
-     *
-     * @param word
+     * This method adds the got collection of Strings to the Set which contains the words to be ignored.
+     * @param c
      */
     @Override
-    public void addSkipWords(Collection<String> c) {
+    public void addSkipWords(@Nonnull Collection<String> c) {
         skipWords.addAll(skipWords);
     }
 
@@ -82,7 +84,6 @@ public class SorterByVowelFreq implements WordStore {
 
     /**
      * Logs the n-sized top-list of the found words.
-     *
      * @param n
      */
     @Override
@@ -97,7 +98,6 @@ public class SorterByVowelFreq implements WordStore {
 
     /**
      * Creates the sorted List of the entries of the Map.
-     *
      * @return
      */
     private List<Map.Entry<String, Double>> sortedWordsByFreq() {

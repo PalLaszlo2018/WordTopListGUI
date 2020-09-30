@@ -12,25 +12,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.annotation.Nonnull;
 
 
 /**
  * This class can be used to create sorting by the length of the word
- *
  * @author laszlop
  */
 public class SorterByLength implements WordStore {
-
-    private final Set<String> words = new HashSet<>();
+    
+    /**
+     * Set to store the found words.
+     */
+    private final Set<String> words = new HashSet<>();  
+    /**
+     * Set of words which will be not stored.
+     */
     private final Set<String> skipWords = new HashSet<>();
 
     /**
      * This method adds the got word to the Set which contains the found valid words.
-     *
-     * @param word
      */
     @Override
-    public synchronized boolean store(CharSequence charSequence) {
+    public synchronized boolean store(@Nonnull CharSequence charSequence) {
         String word = charSequence.toString();
         if (word.length() > 2 && !skipWords.contains(word)) {
             words.add(word);
@@ -42,11 +46,9 @@ public class SorterByLength implements WordStore {
 
     /**
      * This method adds the got word to the Set which contains the words to be ignored.
-     *
-     * @param word
      */
     @Override
-    public void addSkipWords(Collection<String> c) {
+    public void addSkipWords(@Nonnull Collection<String> c) {
         skipWords.addAll(skipWords);
     }
 
@@ -60,7 +62,6 @@ public class SorterByLength implements WordStore {
 
     /**
      * Logs the n-sized top-list of the found words.
-     *
      * @param n
      */
     @Override

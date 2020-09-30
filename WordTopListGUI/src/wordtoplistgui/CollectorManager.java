@@ -6,7 +6,6 @@ package wordtoplistgui;
 
 import static wordtoplistgui.WordTopListGUI.LOG;
 import wordtoplistgui.sorters.SorterByFrequency;
-import wordtoplistgui.GUI.BasicFrame;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import javax.annotation.Nonnull;
 import wordtoplistgui.GUI.ActionObserver;
 import wordtoplistgui.GUI.DataProvider;
 
@@ -29,23 +29,53 @@ import wordtoplistgui.GUI.DataProvider;
  */
 public class CollectorManager implements ActionObserver, DataProvider {
 
-    private int maxThreads;
-    private final Set<String> skipWords = new HashSet<>(Arrays.asList("and", "but", "for", "that", "the", "with", "www"));
-    private final Set<String> skipTags = new HashSet<>(Arrays.asList("head", "script", "style"));
-    private final SorterByFrequency store = new SorterByFrequency();
-    private BlockingQueue<URL> urlQueue;
-    private CountDownLatch latch;
-    private final List<String> finishedURLs = new ArrayList<>();
-    private boolean finished;
-    private CollectorSettings collectorSettings;
-    private CollectorObserver collectorObserver;
-   
-    
-    //Az ActionObserver-be nem kellenek a plusz metódusok. Helyette a CollectorSettings-ről kérd le a CollectorManager.doAction() metódusban.
-    // A CollectorSettings-t implementálja a BasicFrame szóval meg fogjuk kapni ami nekünk kell.
-   
     /**
-     * Creates Threads and starts them
+     * The maximum number of threads.
+     */
+    private int maxThreads;
+    /**
+     * Words that will be not stored (conjunctions, irrelevant words).
+     */
+    private final Set<String> skipWords = new HashSet<>(Arrays.asList("and", "but", "for", "that", "the", "with", "www"));
+    /**
+     * Texts between these words will be generally ignored.
+     */
+    private final Set<String> skipTags = new HashSet<>(Arrays.asList("head", "script", "style"));
+    /**
+     * To store the collected words.
+     */
+    private final SorterByFrequency store = new SorterByFrequency();
+    /**
+     * The received URL-s to process will be transferred to this queue.
+     */
+    @Nonnull
+    private BlockingQueue<URL> urlQueue;
+    /**
+     * This latch will be used to manage the threads, until it reaches 0, no the main thread will be blocked.
+     */
+    @Nonnull
+    private CountDownLatch latch;
+    /**
+     * List of already processed URLs.
+     */
+    private final List<String> finishedURLs = new ArrayList<>();
+    /**
+     * To mark the end of the whole procedure.
+     */
+    private boolean finished;
+    /**
+     * To store the number of threads and the URLs.
+     */
+    @Nonnull
+    private CollectorSettings collectorSettings;
+    /**
+     * To observe the changes in the collection of stored words.
+     */
+    @Nonnull
+    private CollectorObserver collectorObserver;
+     
+    /**
+     * Creates Threads and starts them.
      */    
     @Override
     public void doAction() {
@@ -67,24 +97,18 @@ public class CollectorManager implements ActionObserver, DataProvider {
     
     /**
      * stores the found word by calling the appropriate method of the store
-     * 
      * @param charSequence 
      */    
-    void storeWord(CharSequence charSequence){
+    void storeWord(@Nonnull CharSequence charSequence){
         if (store.store(charSequence)) {
             collectorObserver.changed();
         }
     }
     
-    boolean isSkipTag(String str) {
+    boolean isSkipTag(@Nonnull String str) {
         return skipTags.contains(str);
     }
     
-    /**
-     * Takes out the next URL form the queue thread safe way
-     *
-     * @return next URL
-     */
     synchronized URL takeURLfromQueue() {
         URL url = urlQueue.poll();
         LOG.info(Thread.currentThread().getName() + ": " + url + " was taken out from the queue, " + urlQueue.size()
@@ -92,7 +116,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
         return url;
     }
 
-    synchronized void decreaseLatch(String urlString) {
+    synchronized void decreaseLatch(@Nonnull String urlString) {
         latch.countDown();
         LOG.info(Thread.currentThread().getName() + ": " + urlString + " finished. The current size of the latch is: "
                 + latch.getCount());
@@ -106,6 +130,10 @@ public class CollectorManager implements ActionObserver, DataProvider {
         
     //===========GETTERS============
     
+    /**
+     * Delivers the stored words in List of DataStores format
+     * @return 
+     */
     @Override
     public List<DataStore> getSortedWords() {
         List<Map.Entry<String, Integer>> entryList = store.sortedWordsByFreq();
@@ -116,19 +144,34 @@ public class CollectorManager implements ActionObserver, DataProvider {
         return dataList;
     }
     
+    /**
+     * Delivers the List of already processed URLs
+     * @return 
+     */
     @Override
     public List<String> getFinishedURLs() {
         return finishedURLs;
     }
     
+    /**
+     * Delivers the queue of URLs whose processing did not start yet
+     * @return 
+     */
     public BlockingQueue<URL> getUrlQueue() {
         return urlQueue;
     }
-
+    /**
+     * @see {@link #latch latch}
+     * @return 
+     */
     public CountDownLatch getLatch() {
         return latch;
     }
-
+    
+    /**
+     * Tells whether the entire procedure is finished or not.
+     * @return 
+     */
     @Override
     public boolean isFinished() {
         return finished;
@@ -136,7 +179,11 @@ public class CollectorManager implements ActionObserver, DataProvider {
    
           
     //==========SETTERS===========
-
+    
+    /**
+     * Stores the maximal number of threads.
+     * @param maxThreads 
+     */
     public void setMaxThreads(int maxThreads) {
         if (maxThreads < 1) {
             LOG.severe("The number of threads was too low (" + maxThreads + "), it was amended to 1.");
@@ -144,12 +191,20 @@ public class CollectorManager implements ActionObserver, DataProvider {
         }
         this.maxThreads = maxThreads;
     }
-
-    public void setCollectorSettings(CollectorSettings collectorSettings) {
+    
+    /**
+     * Assigns the CollectorSettings to the instance.
+     * @param collectorSettings 
+     */
+    public void setCollectorSettings(@Nonnull CollectorSettings collectorSettings) {
         this.collectorSettings = collectorSettings;
     }
-
-    public void setCollectorObserver(CollectorObserver collectorObserver) {
+    
+    /**
+     * Assigns the CollectorObserver to the instance.
+     * @param collectorObserver 
+     */
+    public void setCollectorObserver(@Nonnull CollectorObserver collectorObserver) {
         this.collectorObserver = collectorObserver;
     }
 }

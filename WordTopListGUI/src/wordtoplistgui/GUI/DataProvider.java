@@ -8,20 +8,30 @@
 package wordtoplistgui.GUI;
 
 import java.util.List;
-import java.util.Map;
 import wordtoplistgui.DataStore;
 
 /**
  * The implementers provide data about the current status of the collecting process.
- * @version $Revision$ $LastChangedDate$
- * @author $Author$
+ * @author Janos Aron Kiss
  */
 public interface DataProvider {
-
+    
+    /**
+     * Delivers the stored words.
+     * @return 
+     */
     List<DataStore> getSortedWords();
     
+    /**
+     * Delivers the already finished URLs.
+     * @return 
+     */
     List<String> getFinishedURLs();
     
+    /**
+     * Checks whether the entire procedure was finished or not.
+     * @return 
+     */
     boolean isFinished();
     
 

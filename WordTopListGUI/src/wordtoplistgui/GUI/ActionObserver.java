@@ -7,13 +7,9 @@
 
 package wordtoplistgui.GUI;
 
-import java.net.URL;
-import java.util.Collection;
-
 /**
  * The action observer will be noticed when the user do something important on the GUI.
- * @version $Revision$ $LastChangedDate$
- * @author $Author$
+ * @author Janos Aron Kiss
  */
 public interface ActionObserver {
 

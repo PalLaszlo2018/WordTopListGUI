@@ -14,24 +14,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import javax.annotation.Nonnull;
 
 
 /**
  * This class can be used to create sorting by frequency
- *
  * @author laszlop
  */
 public class SorterByFrequency implements WordStore {
     
+    /**
+     * Map to store the found words as keys, and the number of their appearances as values.
+     */
     private final Map<String, Integer> wordFrequency = new HashMap<>();
+    /**
+     * Set of words which will be not stored.
+     */
     private final Set<String> skipWords = new HashSet<>();
 
     /**
      * adds the got word to the Map which contains the found valid words.
      * @param charSequence 
+     * @return  whether storing was successful or not.
      */
     @Override
-    public synchronized boolean store(CharSequence charSequence) {
+    public synchronized boolean store(@Nonnull CharSequence charSequence) {
         if (charSequence.length() > 2) {
             String word = charSequence.toString().toLowerCase();
             if (!skipWords.contains(word)) {
@@ -44,12 +51,11 @@ public class SorterByFrequency implements WordStore {
     }
     
     /**
-     * This method adds the got word to the Set which contains the words to be ignored.
-     *
-     * @param word
+     * This method adds the got collection to the Set which contains the words to be ignored.
+     * @param collection of Strings to store
      */
     @Override
-    public void addSkipWords(Collection<String> c) {
+    public void addSkipWords(@Nonnull Collection<String> c) {
         skipWords.addAll(c);
     }
 
@@ -63,7 +69,6 @@ public class SorterByFrequency implements WordStore {
 
     /**
      * Logs the n-sized top-list of the found words.
-     *
      * @param n
      */
     @Override
@@ -82,7 +87,6 @@ public class SorterByFrequency implements WordStore {
 
     /**
      * Creates the sorted List of the entries of the Map.
-     *
      * @return sorted List
      */  
     public synchronized List<Map.Entry<String, Integer>> sortedWordsByFreq() {

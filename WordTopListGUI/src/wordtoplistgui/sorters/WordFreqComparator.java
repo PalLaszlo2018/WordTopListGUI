@@ -6,6 +6,7 @@ package wordtoplistgui.sorters;
 
 import java.util.Comparator;
 import java.util.Map;
+import javax.annotation.Nonnull;
 
 /**
  * This comparator can help sorting the word-frequency entries. It checks the frequency first (higher values prioritized), in case
@@ -21,7 +22,7 @@ public class WordFreqComparator implements Comparator<Map.Entry<String, Integer>
      * @return 
      */
     @Override
-    public int compare(Map.Entry<String, Integer> wordFreq1, Map.Entry<String, Integer> wordFreq2) {
+    public int compare(@Nonnull Map.Entry<String, Integer> wordFreq1, @Nonnull Map.Entry<String, Integer> wordFreq2) {
         Integer freq1 = wordFreq1.getValue();
         Integer freq2 = wordFreq2.getValue();
         if (freq1 != freq2) {

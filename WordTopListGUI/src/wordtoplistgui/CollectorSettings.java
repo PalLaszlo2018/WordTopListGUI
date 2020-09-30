@@ -12,13 +12,20 @@ import java.util.Collection;
 
 /**
  * The implementers provide information for the {@link CollectorManager}, to perform the word collecting process.
- * @version $Revision$ $LastChangedDate$
- * @author $Author$
+ * @author Janos Aron Kiss
  */
 public interface CollectorSettings {
-
+    
+    /**
+     * Returns the maximal number of threads.
+     * @return 
+     */
     int getMaxThreads();
     
+    /**
+     * Returns the got URLs.
+     * @return 
+     */
     Collection<URL> getURLs();
 
 }

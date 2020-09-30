@@ -5,21 +5,38 @@
 package wordtoplistgui.sorters;
 
 import java.util.Collection;
+import javax.annotation.Nonnull;
 
 
 
 /**
- * Interface to be implemented to store words
+ * Interface to be implemented to store words.
  * @author laszlop
  */
 public interface WordStore {
     
-    public boolean store(CharSequence c);
+    /**
+     * Stores the found words.
+     * @param c
+     * @return whether the storing was successful or not 
+     */
+    public boolean store(@Nonnull CharSequence c);
     
-    public void addSkipWords(Collection<String> c);
+    /**
+     * Stores the collection of words to be ignored by storing
+     * @param c 
+     */
+    public void addSkipWords(@Nonnull Collection<String> c);
     
+    /**
+     * Prints all found words.
+     */
     public void print();
     
+    /**
+     * Prints the n-sized top-list of the found words.
+     * @param n 
+     */
     public void print(int n);   
 
     
