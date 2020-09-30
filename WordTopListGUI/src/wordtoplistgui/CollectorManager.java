@@ -97,7 +97,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
     
     /**
      * stores the found word by calling the appropriate method of the store
-     * @param charSequence 
+     * @param charSequence to be stored
      */    
     void storeWord(@Nonnull CharSequence charSequence){
         if (store.store(charSequence)) {
@@ -152,22 +152,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
     public List<String> getFinishedURLs() {
         return finishedURLs;
     }
-    
-    /**
-     * Delivers the queue of URLs whose processing did not start yet
-     * @return 
-     */
-    public BlockingQueue<URL> getUrlQueue() {
-        return urlQueue;
-    }
-    /**
-     * @see {@link #latch latch}
-     * @return 
-     */
-    public CountDownLatch getLatch() {
-        return latch;
-    }
-    
+       
     /**
      * Tells whether the entire procedure is finished or not.
      * @return 
@@ -180,18 +165,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
           
     //==========SETTERS===========
     
-    /**
-     * Stores the maximal number of threads.
-     * @param maxThreads 
-     */
-    public void setMaxThreads(int maxThreads) {
-        if (maxThreads < 1) {
-            LOG.severe("The number of threads was too low (" + maxThreads + "), it was amended to 1.");
-            maxThreads = 1;
-        }
-        this.maxThreads = maxThreads;
-    }
-    
+   
     /**
      * Assigns the CollectorSettings to the instance.
      * @param collectorSettings 

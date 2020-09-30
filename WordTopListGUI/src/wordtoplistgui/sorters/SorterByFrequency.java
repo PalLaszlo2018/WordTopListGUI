@@ -33,8 +33,8 @@ public class SorterByFrequency implements WordStore {
     private final Set<String> skipWords = new HashSet<>();
 
     /**
-     * adds the got word to the Map which contains the found valid words.
-     * @param charSequence 
+     * adds the got charSequence to the Map which contains the found valid words.
+     * @param charSequence to be stored
      * @return  whether storing was successful or not.
      */
     @Override
@@ -52,7 +52,7 @@ public class SorterByFrequency implements WordStore {
     
     /**
      * This method adds the got collection to the Set which contains the words to be ignored.
-     * @param collection of Strings to store
+     * @param c collection of Strings to store
      */
     @Override
     public void addSkipWords(@Nonnull Collection<String> c) {

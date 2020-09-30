@@ -12,12 +12,8 @@ import javax.annotation.Nonnull;
  * @author laszlop
  */
 public class WordLenComparator implements Comparator<String> {
-/**
- * sorts the two Map.Entries received as parameter
- * @param word1
- * @param word2
- * @return 
- */
+
+    
     /**
      * Returns the order of the two words.
      * @param word1

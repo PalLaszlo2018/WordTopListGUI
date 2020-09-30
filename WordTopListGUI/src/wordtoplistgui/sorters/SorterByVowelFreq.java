@@ -52,7 +52,7 @@ public class SorterByVowelFreq implements WordStore {
 
     /**
      * counts the vowels in the input word
-     * @param word
+     * @param word to check
      * @return number of vowels
      */
     private int countVowels(String word) {
@@ -67,7 +67,7 @@ public class SorterByVowelFreq implements WordStore {
 
     /**
      * This method adds the got collection of Strings to the Set which contains the words to be ignored.
-     * @param c
+     * @param c collection of Strings to be ignored
      */
     @Override
     public void addSkipWords(@Nonnull Collection<String> c) {

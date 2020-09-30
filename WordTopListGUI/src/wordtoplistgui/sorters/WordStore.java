@@ -16,15 +16,15 @@ import javax.annotation.Nonnull;
 public interface WordStore {
     
     /**
-     * Stores the found words.
-     * @param c
+     * Stores the found CharSequence.
+     * @param c CharSequence to be stored
      * @return whether the storing was successful or not 
      */
     public boolean store(@Nonnull CharSequence c);
     
     /**
      * Stores the collection of words to be ignored by storing
-     * @param c 
+     * @param c Collection of words to be ignored
      */
     public void addSkipWords(@Nonnull Collection<String> c);
     

@@ -166,7 +166,6 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     
     /**
      * Displays the found words and its frequencies on the frame
-     * @param map
      */
     void displayResult() {
         List<DataStore> sortedList = dataProvider.getSortedWords();
@@ -185,8 +184,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     }
 
     /**
-     * Displays the full list of finished URLs
-     * @param finishedURL
+     * Displays the full list of finished URLs.
      */
     void displayprocessedURLs() {
         List<String> processedURLs = dataProvider.getFinishedURLs();
@@ -274,6 +272,10 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
         maxThreads = 4;
         if (Character.isDigit(threadCount.getText().charAt(0))) {
             maxThreads = Integer.parseInt(threadCount.getText());
+            if (maxThreads < 1) {
+                LOG.severe("The number of threads was too low (" + maxThreads + "), it was amended to 1.");
+                maxThreads = 1;
+            }
             threadCount.setText(Integer.toString(maxThreads));
         } else {
             threadCount.setBackground(Color.red);

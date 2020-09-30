@@ -74,8 +74,8 @@ public class WordCollector implements Runnable {
     /**
      * Reads the content of the URL, the found words will be put into a Map, found opening tags start the method recursive way,
      * found closing tags close the (sub)method.
-     * @param tag
-     * @param reader
+     * @param tag that starts the text
+     * @param reader open reader in its actual status
      * @throws IOException
      */
     private void eatTag(@Nonnull String tag, @Nonnull BufferedReader reader, @Nonnull boolean processable) throws IOException {
@@ -109,7 +109,7 @@ public class WordCollector implements Runnable {
 
     /**
      * This method builds up the tag from the read characters.
-     * @param reader
+     * @param reader open reader in its actual status
      * @return tag
      * @throws IOException
      */
@@ -148,7 +148,7 @@ public class WordCollector implements Runnable {
     
     /**
      * This method finds the first opening tag, this tag is needed to start the substantive eatTag method.
-     * @param reader
+     * @param reader open reader in its actual status
      * @return opening tag
      * @throws IOException
      */
