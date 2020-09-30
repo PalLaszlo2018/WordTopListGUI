@@ -17,17 +17,16 @@ public class WordFreqComparator implements Comparator<Map.Entry<String, Integer>
 
     /**
      * sorts the two Map.Entries received as parameter
-     * @param wordFreq1
-     * @param wordFreq2
+     * @param wordFreq1 to be sorted
+     * @param wordFreq2 to be sorted
      * @return 
      */
     @Override
     public int compare(@Nonnull Map.Entry<String, Integer> wordFreq1, @Nonnull Map.Entry<String, Integer> wordFreq2) {
         Integer freq1 = wordFreq1.getValue();
         Integer freq2 = wordFreq2.getValue();
-        if (freq1 != freq2) {
+        if ( freq1 != freq2 )
             return - freq1.compareTo(freq2);
-        }
         return wordFreq1.getKey().compareTo(wordFreq2.getKey());
     }
     

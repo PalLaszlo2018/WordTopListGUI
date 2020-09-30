@@ -156,9 +156,8 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
      * To refresh the fields.
      */
     private void updateLater() {
-        if (update) {
+        if ( update ) 
             return;
-        }
         update = true;
         Runnable refresher = new Refresher();
         SwingUtilities.invokeLater(refresher);
@@ -171,12 +170,12 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
         List<DataStore> sortedList = dataProvider.getSortedWords();
         int displayedRows = Math.min(TABLE_SIZE, sortedList.size());
         int rowsInModel = resultModel.getRowCount();
-        if (displayedRows > rowsInModel) {
-            for (int i = 0; i < displayedRows - rowsInModel; i++) {
+        if ( displayedRows > rowsInModel ) {
+            for ( int i = 0; i < displayedRows - rowsInModel; i++ ) {
                 resultModel.addRow(new Object[]{"", ""});
             }
         }
-        for (int row = 0; row < displayedRows; row++) {
+        for ( int row = 0; row < displayedRows; row++ ) {
             DataStore nextElem = sortedList.get(row);
             resultModel.setValueAt(nextElem.getWord(), row, 0);
             resultModel.setValueAt(nextElem.getValue(), row, 1);
@@ -188,11 +187,11 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
      */
     void displayprocessedURLs() {
         List<String> processedURLs = dataProvider.getFinishedURLs();
-        if (processedURLs.size() > listModel.size()) {
+        if (processedURLs.size() > listModel.size())
             for (int i = listModel.size(); i < processedURLs.size(); i++) {
                 listModel.addElement(processedURLs.get(i));
             }
-        }
+        
     }
     
     /**
@@ -200,9 +199,8 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
      */
     void displayFinished() {
         boolean allURLsFinished = dataProvider.isFinished();
-        if (allURLsFinished) {
+        if ( allURLsFinished )
             startURLs.setText("Processing finished");
-        }
     }
     
 
@@ -262,7 +260,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     
     private void processUserInput() {
         String[] URLStrings = startURLs.getText().split("\n");
-        for (int i = 0; i < URLStrings.length; i++) {
+        for ( int i = 0; i < URLStrings.length; i++ ) {
             try {
                 URLs.add(new URL(URLStrings[i]));
             } catch (MalformedURLException ex) {
@@ -270,9 +268,9 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
             }
         }
         maxThreads = 4;
-        if (Character.isDigit(threadCount.getText().charAt(0))) {
+        if ( Character.isDigit(threadCount.getText().charAt(0)) ) {
             maxThreads = Integer.parseInt(threadCount.getText());
-            if (maxThreads < 1) {
+            if ( maxThreads < 1 ) {
                 LOG.severe("The number of threads was too low (" + maxThreads + "), it was amended to 1.");
                 maxThreads = 1;
             }
@@ -319,7 +317,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
 
     /**
      * Assigns the given action observer to the instance.
-     * @param actionObserver 
+     * @param actionObserver to be assigned
      */   
     public void setActionObserver(@Nonnull ActionObserver actionObserver) {
         this.actionObserver = actionObserver;
@@ -327,7 +325,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
 
     /**
      * Assigns the given data provider to the instance.
-     * @param dataProvider 
+     * @param dataProvider to be assigned
      */
     public void setDataProvider(@Nonnull DataProvider dataProvider) {
         this.dataProvider = dataProvider;

@@ -24,7 +24,7 @@ public class WordCollector implements Runnable {
 
     /**
      * creates a new instance with the given CollectorManager
-     * @param manager 
+     * @param manager to be assigned
      */
     public WordCollector(CollectorManager manager) {
         this.manager = manager;
@@ -35,9 +35,9 @@ public class WordCollector implements Runnable {
      */
     @Override
     public void run() {
-        while (true) {
+        while ( true ) {
             URL url = manager.takeURLfromQueue();
-            if (url == null) {
+            if ( url == null ) {
                 LOG.info(Thread.currentThread().getName() + ": No more URL in the queue. Current thread terminates!");
                 return;
             }
@@ -47,7 +47,7 @@ public class WordCollector implements Runnable {
                 LOG.severe("Processing of " + url.toString() + " failed.");
                 LOG.warning(ex.getMessage());
             } finally {
-                manager.decreaseLatch(url.toString());
+                manager.releaseLatch(url.toString());
             }
         }
     }
@@ -81,27 +81,24 @@ public class WordCollector implements Runnable {
     private void eatTag(@Nonnull String tag, @Nonnull BufferedReader reader, @Nonnull boolean processable) throws IOException {
         int value;
         StringBuilder word = new StringBuilder();
-        while ((value = reader.read()) != -1) {
+        while ( (value = reader.read()) != -1 ) {
             char character = (char) value;
-            if (character == '<') {
-                if (processable) {
+            if ( character == '<' ) {
+                if ( processable )
                     manager.storeWord(word);
-                }
                 String nextTagString = buildTag(reader);
-                if (('/' + tag).equals(nextTagString)) {
+                if ( ('/' + tag).equals(nextTagString) )
                     return;
-                }
-                if (!manager.isSkipTag(tag) && !nextTagString.startsWith("/")) {
+                if ( !manager.isSkipTag(tag) && !nextTagString.startsWith("/") ) {
                     boolean nextProcessable = processable && !manager.isSkipTag(nextTagString);
                     eatTag(nextTagString, reader, nextProcessable);
                 }
             }
-            if (Character.isLetter(character)) {
+            if ( Character.isLetter(character) )
                 word.append(character);
-            } else {
-                if (processable) {
+            else {
+                if ( processable )
                     manager.storeWord(word);                    
-                }
                 word.setLength(0);
             }
         }
@@ -119,28 +116,24 @@ public class WordCollector implements Runnable {
         String tagString = "";
         char tagChar = '/';
         int value;
-        while ((value = reader.read()) != -1) {
+        while ( (value = reader.read()) != -1 ) {
             tagChar = (char) value;
-            if (tagChar == '>') {
+            if ( tagChar == '>' ) {
                 String fullString = full.toString().toLowerCase();
-                if (tagString.isEmpty()) {
+                if ( tagString.isEmpty() ) 
                     tagString = fullString;
-                }
-                if (fullString.isEmpty()
+                if ( fullString.isEmpty()
                         || fullString.charAt(full.length() - 1) == '/' //self-closing tags will be ignored
-                        || fullString.startsWith("!--") && fullString.endsWith("--")) { // HTML comments will be ignored
+                        || fullString.startsWith("!--") && fullString.endsWith("--") )  // HTML comments will be ignored
                     return "";
-                } else {
+                else
                     return tagString;
-                }
             }
             full.append(tagChar);
-            if (tagChar == ' ' && tagString.isEmpty()) {
+            if ( tagChar == ' ' && tagString.isEmpty() ) 
                 tagString = tag.toString().toLowerCase();
-            }
-            if (tagString.isEmpty()) {
+            if ( tagString.isEmpty() ) 
                 tag.append(tagChar);
-            }
         }
         return tagString; //if tag is closed, it will never run
     }
@@ -155,9 +148,9 @@ public class WordCollector implements Runnable {
     private String findOpeningTag(@Nonnull BufferedReader reader) throws IOException {
         int value;
         String openingTag = "";
-        while ((value = reader.read()) != -1) {
+        while ( (value = reader.read()) != -1 ) {
             char character = (char) value;
-            if (character == '<') {
+            if ( character == '<' ) {
                 openingTag = buildTag(reader);
                 return openingTag;
             }

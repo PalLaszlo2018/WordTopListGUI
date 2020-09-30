@@ -16,8 +16,8 @@ public class WordLenComparator implements Comparator<String> {
     
     /**
      * Returns the order of the two words.
-     * @param word1
-     * @param word2
+     * @param word1 to be sorted
+     * @param word2 to be sorted
      * @return 
      */
     @Override

@@ -16,8 +16,8 @@ import javax.annotation.Nonnull;
 public class WordVowelFreqComparator implements Comparator<Map.Entry<String, Double>> {
 /**
  * sorts the two Map.Entries received as parameter
- * @param wordFreq1
- * @param wordFreq2
+ * @param wordFreq1 to be sorted
+ * @param wordFreq2 to be sorted
  * @return 
  */
     @Override

@@ -18,13 +18,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import wordtoplistgui.GUI.ActionObserver;
 import wordtoplistgui.GUI.DataProvider;
 
 
 /**
  * This class creates the various threads that will collect the words in a common collection
- *
  * @author laszlop
  */
 public class CollectorManager implements ActionObserver, DataProvider {
@@ -36,11 +36,12 @@ public class CollectorManager implements ActionObserver, DataProvider {
     /**
      * Words that will be not stored (conjunctions, irrelevant words).
      */
-    private final Set<String> skipWords = new HashSet<>(Arrays.asList("and", "but", "for", "that", "the", "with", "www"));
+    private final static Set<String> skipWords = new HashSet<>(Arrays.asList("and", "all", "but", "for", "from", "that", "the",
+            "with", "www"));
     /**
      * Texts between these words will be generally ignored.
      */
-    private final Set<String> skipTags = new HashSet<>(Arrays.asList("head", "script", "style"));
+    private final static Set<String> skipTags = new HashSet<>(Arrays.asList("head", "script", "style"));
     /**
      * To store the collected words.
      */
@@ -66,12 +67,13 @@ public class CollectorManager implements ActionObserver, DataProvider {
     /**
      * To store the number of threads and the URLs.
      */
-    @Nonnull
+    @Nullable
     private CollectorSettings collectorSettings;
     /**
      * To observe the changes in the collection of stored words.
+     * If null, nobody will be informed.
      */
-    @Nonnull
+    @Nullable
     private CollectorObserver collectorObserver;
      
     /**
@@ -80,15 +82,16 @@ public class CollectorManager implements ActionObserver, DataProvider {
     @Override
     public void doAction() {
         store.addSkipWords(skipWords);
-        maxThreads = collectorSettings.getMaxThreads();
-        System.out.println(maxThreads);
-        Collection<URL> urlCollection = collectorSettings.getURLs();
-        System.out.println(urlCollection);
-        urlQueue = new ArrayBlockingQueue(urlCollection.size(), false, urlCollection);
-        System.out.println(urlQueue);
-        latch = new CountDownLatch(urlCollection.size());
+        if ( collectorSettings != null ) {
+            maxThreads = collectorSettings.getMaxThreads();
+            Collection<URL> urlCollection = collectorSettings.getURLs();
+            urlQueue = new ArrayBlockingQueue(urlCollection.size(), false, urlCollection);
+            latch = new CountDownLatch(urlCollection.size());
+        } else {
+            throw new NullPointerException("CollectorSettings was not defined.");
+        }
         List<Thread> threadList = new ArrayList<>();
-        for (int i = 0; i < maxThreads; i++) {
+        for ( int i = 0; i < maxThreads; i++ ) {
             threadList.add(new Thread(new WordCollector(this)));
             threadList.get(i).start();
             LOG.info("THREAD " + (i + 1) + " STARTED.");
@@ -100,15 +103,16 @@ public class CollectorManager implements ActionObserver, DataProvider {
      * @param charSequence to be stored
      */    
     void storeWord(@Nonnull CharSequence charSequence){
-        if (store.store(charSequence)) {
+        if ( store.store(charSequence) && collectorObserver != null ) 
             collectorObserver.changed();
-        }
+
     }
     
     boolean isSkipTag(@Nonnull String str) {
         return skipTags.contains(str);
     }
     
+    @Nullable
     synchronized URL takeURLfromQueue() {
         URL url = urlQueue.poll();
         LOG.info(Thread.currentThread().getName() + ": " + url + " was taken out from the queue, " + urlQueue.size()
@@ -116,15 +120,15 @@ public class CollectorManager implements ActionObserver, DataProvider {
         return url;
     }
 
-    synchronized void decreaseLatch(@Nonnull String urlString) {
+    synchronized void releaseLatch(@Nonnull String urlString) {
         latch.countDown();
         LOG.info(Thread.currentThread().getName() + ": " + urlString + " finished. The current size of the latch is: "
                 + latch.getCount());
         finishedURLs.add(urlString);
-        if (latch.getCount() == 0) {
+        if ( latch.getCount() == 0 )
             finished = true;
-        }
-        collectorObserver.changed();
+        if ( collectorObserver != null )
+            collectorObserver.changed();
     }
 
         
@@ -132,13 +136,13 @@ public class CollectorManager implements ActionObserver, DataProvider {
     
     /**
      * Delivers the stored words in List of DataStores format
-     * @return 
+     * @return the stored words in List of DataStores format
      */
     @Override
     public List<DataStore> getSortedWords() {
         List<Map.Entry<String, Integer>> entryList = store.sortedWordsByFreq();
         List<DataStore> dataList = new ArrayList<>();
-        for (int i = 0; i < entryList.size(); i++) {
+        for ( int i = 0; i < entryList.size(); i++ ) {
             dataList.add(new DataStore(entryList.get(i).getKey(), entryList.get(i).getValue()));
         }
         return dataList;
@@ -146,7 +150,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
     
     /**
      * Delivers the List of already processed URLs
-     * @return 
+     * @return the List of already processed URLs
      */
     @Override
     public List<String> getFinishedURLs() {
@@ -168,7 +172,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
    
     /**
      * Assigns the CollectorSettings to the instance.
-     * @param collectorSettings 
+     * @param collectorSettings to be assigned
      */
     public void setCollectorSettings(@Nonnull CollectorSettings collectorSettings) {
         this.collectorSettings = collectorSettings;
@@ -176,7 +180,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
     
     /**
      * Assigns the CollectorObserver to the instance.
-     * @param collectorObserver 
+     * @param collectorObserver to be assigned
      */
     public void setCollectorObserver(@Nonnull CollectorObserver collectorObserver) {
         this.collectorObserver = collectorObserver;

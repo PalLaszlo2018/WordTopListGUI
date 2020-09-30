@@ -36,7 +36,7 @@ public class SorterByLength implements WordStore {
     @Override
     public synchronized boolean store(@Nonnull CharSequence charSequence) {
         String word = charSequence.toString();
-        if (word.length() > 2 && !skipWords.contains(word)) {
+        if ( word.length() > 2 && !skipWords.contains(word) ) {
             words.add(word);
             LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
             return true;

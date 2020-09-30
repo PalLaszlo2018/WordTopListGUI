@@ -41,7 +41,7 @@ public class SorterByVowelFreq implements WordStore {
     @Override
     public synchronized boolean store(CharSequence charSequence) {
         String word = charSequence.toString();
-        if (word.length() > 2 && !skipWords.contains(word) && !wordVowelFreq.containsKey(word)) {
+        if ( word.length() > 2 && !skipWords.contains(word) && !wordVowelFreq.containsKey(word) ) {
             double vowelFreq = countVowels(word) / (double) word.length();
             wordVowelFreq.put(word, vowelFreq);
             LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
@@ -57,10 +57,9 @@ public class SorterByVowelFreq implements WordStore {
      */
     private int countVowels(String word) {
         int vowelCount = 0;
-        for (int i = 0; i < word.length(); i++) {
-            if (vowels.contains(word.charAt(i))) {
+        for ( int i = 0; i < word.length(); i++ ) {
+            if ( vowels.contains(word.charAt(i)) ) 
                 vowelCount++;
-            }
         }
         return vowelCount;
     }
@@ -90,7 +89,7 @@ public class SorterByVowelFreq implements WordStore {
     public void print(int n) {
         List<Map.Entry<String, Double>> sortedList = sortedWordsByFreq();
         LOG.log(Level.INFO, "The " + n + "-sized list of words with highest vowel frequency:");
-        for (int i = 0; i < n; i++) {
+        for ( int i = 0; i < n; i++ ) {
             DecimalFormat df = new DecimalFormat("###.###");
             LOG.log(Level.INFO, " " + sortedList.get(i).getKey() + " = " + df.format(sortedList.get(i).getValue()));
         }

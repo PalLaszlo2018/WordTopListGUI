@@ -13,14 +13,14 @@ import javax.annotation.Nonnull;
 public class DataStore {
     
     @Nonnull 
-    private String word;
+    private final String word;
     @Nonnull 
-    private int value;
+    private final int value;
     
     /**
      * creates a new instance with the given word and value
-     * @param word
-     * @param value 
+     * @param word to be stored
+     * @param value to be stored
      */
     public DataStore(String word, int value) {
         this.word = word;

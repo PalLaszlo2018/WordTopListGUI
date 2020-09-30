@@ -17,14 +17,14 @@ import java.util.Collection;
 public interface CollectorSettings {
     
     /**
-     * Returns the maximal number of threads.
-     * @return 
+     * Delivers the maximal number of threads.
+     * @return the maximal number of threads
      */
     int getMaxThreads();
     
     /**
-     * Returns the got URLs.
-     * @return 
+     * Delivers the got URLs.
+     * @return the got URLs.
      */
     Collection<URL> getURLs();
 

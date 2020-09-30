@@ -39,9 +39,9 @@ public class SorterByFrequency implements WordStore {
      */
     @Override
     public synchronized boolean store(@Nonnull CharSequence charSequence) {
-        if (charSequence.length() > 2) {
+        if ( charSequence.length() > 2 ) {
             String word = charSequence.toString().toLowerCase();
-            if (!skipWords.contains(word)) {
+            if ( !skipWords.contains(word) ) {
                 wordFrequency.put(word, wordFrequency.getOrDefault(word, 0) + 1);
                 LOG.log(Level.INFO, Thread.currentThread().getName() + " added word = " + word);
             }
@@ -74,12 +74,12 @@ public class SorterByFrequency implements WordStore {
     @Override
     public void print(int n) {
         List<Map.Entry<String, Integer>> sortedList = sortedWordsByFreq();
-        if (sortedList.isEmpty()) {
+        if ( sortedList.isEmpty() ) {
             System.out.println("No list was created.");
             return;
         }
         LOG.log(Level.INFO, "The " + n + " most used words:");
-        for (int i = 0; i < n; i++) {
+        for ( int i = 0; i < n; i++ ) {
             LOG.log(Level.INFO, " " + sortedList.get(i));
         }
         System.out.println("");

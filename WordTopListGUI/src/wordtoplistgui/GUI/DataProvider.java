@@ -18,13 +18,13 @@ public interface DataProvider {
     
     /**
      * Delivers the stored words.
-     * @return 
+     * @return stored words
      */
     List<DataStore> getSortedWords();
     
     /**
      * Delivers the already finished URLs.
-     * @return 
+     * @return finished URLs
      */
     List<String> getFinishedURLs();
     
