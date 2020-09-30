@@ -30,10 +30,6 @@ import wordtoplistgui.GUI.DataProvider;
 public class CollectorManager implements ActionObserver, DataProvider {
 
     /**
-     * The maximum number of threads.
-     */
-    private int maxThreads;
-    /**
      * Words that will be not stored (conjunctions, irrelevant words).
      */
     private final static Set<String> skipWords = new HashSet<>(Arrays.asList("and", "all", "but", "for", "from", "that", "the",
@@ -42,6 +38,10 @@ public class CollectorManager implements ActionObserver, DataProvider {
      * Texts between these words will be generally ignored.
      */
     private final static Set<String> skipTags = new HashSet<>(Arrays.asList("head", "script", "style"));
+    /**
+     * The maximum number of threads.
+     */
+    private int maxThreads;
     /**
      * To store the collected words.
      */
