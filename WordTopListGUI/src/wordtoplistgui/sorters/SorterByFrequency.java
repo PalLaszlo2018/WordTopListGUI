@@ -95,4 +95,8 @@ public class SorterByFrequency implements WordStore {
         return sortedList;
     }
     
+    public void deleteMap(){
+        wordFrequency.clear();
+    }
+    
 }

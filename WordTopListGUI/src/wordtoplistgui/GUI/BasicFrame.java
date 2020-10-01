@@ -61,16 +61,16 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     @Nonnull
     private JList finishedURLs;
     /**
-     * The ListModel behind the finihsedURLs.
+     * The ListModel behind the finishedURLs.
      */
-    private final DefaultListModel listModel = new DefaultListModel();
+    private DefaultListModel listModel = new DefaultListModel();
     /**
      * Displays the results of the application in a window.
      */
     @Nonnull
     private JTable result;
     /**
-     * The TableModel behind the finihsedURLs.
+     * The TableModel behind the finishedURLs.
      */
     @Nonnull
     private DefaultTableModel resultModel;
@@ -95,6 +95,11 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
      * Stores the list of URL-s received form the user.
      */
     private List<URL>URLs = new ArrayList<>();
+    
+    /**
+     * Help display the message in case of wrong URLs
+     */
+    private String error = "";
 
     /**
      * Delivers the maximum number of threads
@@ -200,7 +205,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     void displayFinished() {
         boolean allURLsFinished = dataProvider.isFinished();
         if ( allURLsFinished )
-            startURLs.setText("Processing finished");
+            startURLs.setText(error + "Processing finished");
     }
     
 
@@ -259,12 +264,20 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     }
     
     private void processUserInput() {
+        dataProvider.deleteFinishedURLs();
+        listModel.clear();
+        dataProvider.deleteData();
+        resultModel.setNumRows(0);
+        URLs.clear();
+        dataProvider.setFinished(false);
+        error = "";
         String[] URLStrings = startURLs.getText().split("\n");
         for ( int i = 0; i < URLStrings.length; i++ ) {
             try {
                 URLs.add(new URL(URLStrings[i]));
             } catch (MalformedURLException ex) {
                 LOG.severe(URLStrings[i] + " is not a proper URL.");
+                error += URLStrings[i] + " is not a proper URL. \n";
             }
         }
         maxThreads = 4;
@@ -281,7 +294,8 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
         try {
             actionObserver.doAction();
         } catch (Exception ex) {
-            LOG.severe("Application failed.");;
+            LOG.severe("Application failed.");
+            startURLs.setText(error + "Application failed.");
         }
     }
          

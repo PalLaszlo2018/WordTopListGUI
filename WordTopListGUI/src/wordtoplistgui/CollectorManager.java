@@ -98,6 +98,11 @@ public class CollectorManager implements ActionObserver, DataProvider {
         }
     }
     
+    @Override
+    public void deleteData() {
+        store.deleteMap();
+    }
+    
     /**
      * stores the found word by calling the appropriate method of the store
      * @param charSequence to be stored
@@ -174,7 +179,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
      * Assigns the CollectorSettings to the instance.
      * @param collectorSettings to be assigned
      */
-    public void setCollectorSettings(@Nonnull CollectorSettings collectorSettings) {
+    public void setCollectorSettings(@Nullable CollectorSettings collectorSettings) {
         this.collectorSettings = collectorSettings;
     }
     
@@ -182,8 +187,26 @@ public class CollectorManager implements ActionObserver, DataProvider {
      * Assigns the CollectorObserver to the instance.
      * @param collectorObserver to be assigned
      */
-    public void setCollectorObserver(@Nonnull CollectorObserver collectorObserver) {
+    public void setCollectorObserver(@Nullable CollectorObserver collectorObserver) {
         this.collectorObserver = collectorObserver;
     }
+    
+    /**
+     * allows setting the value to false for a new search
+     * @param True / false
+     */
+    @Override
+    public void setFinished(boolean b) {
+        this.finished = b;
+    }
+    
+    /**
+     * Allows deleting finished URL-s for a new search.
+     */
+    @Override
+    public void deleteFinishedURLs() {
+        finishedURLs.clear();
+    }
+
 }
 
