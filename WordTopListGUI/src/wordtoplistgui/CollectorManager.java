@@ -4,6 +4,7 @@
  */
 package wordtoplistgui;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import static wordtoplistgui.WordTopListGUI.LOG;
 import wordtoplistgui.sorters.SorterByFrequency;
 import java.net.URL;
@@ -75,6 +76,11 @@ public class CollectorManager implements ActionObserver, DataProvider {
      */
     @Nullable
     private CollectorObserver collectorObserver;
+    /**
+     * ExceptionHandler to catch Exceptions.
+     */
+    @Nullable
+    private UncaughtExceptionHandler ehandler;
      
     /**
      * Creates Threads and starts them.
@@ -93,6 +99,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
         List<Thread> threadList = new ArrayList<>();
         for ( int i = 0; i < maxThreads; i++ ) {
             threadList.add(new Thread(new WordCollector(this)));
+            threadList.get(i).setUncaughtExceptionHandler(ehandler);
             threadList.get(i).start();
             LOG.info("THREAD " + (i + 1) + " STARTED.");
         }
@@ -170,8 +177,16 @@ public class CollectorManager implements ActionObserver, DataProvider {
     public boolean isFinished() {
         return finished;
     }
-   
-          
+    
+    /**
+     * Delivers the exception handler
+     * @return exception handler
+     */
+    public UncaughtExceptionHandler getEhandler() {
+        return ehandler;
+    }
+    
+         
     //==========SETTERS===========
     
    
@@ -193,7 +208,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
     
     /**
      * allows setting the value to false for a new search
-     * @param True / false
+     * @param b True/false
      */
     @Override
     public void setFinished(boolean b) {
@@ -207,6 +222,18 @@ public class CollectorManager implements ActionObserver, DataProvider {
     public void deleteFinishedURLs() {
         finishedURLs.clear();
     }
+    
+    /**
+     * Sets the given exception handler
+     * @param ehandler 
+     */
+    public void setEhandler(UncaughtExceptionHandler ehandler) {
+        this.ehandler = ehandler;
+    }
+    
+    
+    
+    
 
 }
 

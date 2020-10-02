@@ -16,9 +16,9 @@ import wordtoplistgui.GUI.BasicFrame;
  * @author laszlop
  */
 public class WordTopListGUI {
-
+    
     public final static Logger LOG = Logger.getGlobal();
-
+    
     public static void main(String[] args) {
         ensureLogger();
         CollectorManager collectorManager = new CollectorManager();
@@ -27,6 +27,8 @@ public class WordTopListGUI {
         collectorManager.setCollectorObserver(frame);
         frame.setActionObserver(collectorManager);
         frame.setDataProvider(collectorManager);
+        EHandler handler = new EHandler(frame);
+        collectorManager.setEhandler(handler);
     }
 
     private static void ensureLogger() {

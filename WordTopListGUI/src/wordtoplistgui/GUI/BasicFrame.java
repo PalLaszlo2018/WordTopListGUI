@@ -20,6 +20,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -77,7 +78,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     /**
      * The number of the rows that can be displayed in the given table.
      */
-    private final int TABLE_SIZE = 53;
+    private final int TABLE_SIZE = 50;
     /**
      * Marks whether the update process started or not.
      */
@@ -95,12 +96,19 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
      * Stores the list of URL-s received form the user.
      */
     private List<URL>URLs = new ArrayList<>();
+       
+    /**
+     * Displays error messages.
+     */
+    @Nonnull
+    private JList messages;
     
     /**
-     * Help display the message in case of wrong URLs
+     * The ListModel behind the messages.
      */
-    private String error = "";
-
+    @Nonnull
+    private DefaultListModel messagelist = new DefaultListModel();
+    
     /**
      * Delivers the maximum number of threads
      * @return 
@@ -154,7 +162,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
         initComponents();
         initExtraComponents();
         initFields();
-        setSize(800, 1000);
+        setSize(800, 1030);
     }
     
     /**
@@ -199,13 +207,17 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
         
     }
     
+    public void displayErrors(String str) {
+        messagelist.addElement(str);
+    }
+    
     /**
      * After all URLs were processed, it prints a message to inform the user.
      */
     void displayFinished() {
         boolean allURLsFinished = dataProvider.isFinished();
         if ( allURLsFinished )
-            startURLs.setText(error + "Processing finished");
+            startURLs.setText("Processing finished");
     }
     
 
@@ -221,14 +233,22 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
         add(threadCount);
 
         finishedURLs = new JList(listModel);
-        finishedURLs.setBounds(50, 560, 350, 350);
+        finishedURLs.setBounds(50, 560, 350, 300);
         add(finishedURLs);
-
+        
+        messages = new JList(messagelist);
+        messages.setBounds(50, 880, 700, 100);
+        JScrollPane scrollableMessages = new JScrollPane(messages);  
+        scrollableMessages.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);  
+        scrollableMessages.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS); 
+        scrollableMessages.setBounds(50, 880, 700, 100);
+        add(scrollableMessages);
+        
         resultModel = new DefaultTableModel();
         resultModel.addColumn("Words");
         resultModel.addColumn("Frequency");
         result = new JTable(resultModel);
-        result.setBounds(450, 60, 300, 850);
+        result.setBounds(450, 60, 300, 800);
         add(result);
 
         setVisible(true);
@@ -266,21 +286,23 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     private void processUserInput() {
         dataProvider.deleteFinishedURLs();
         listModel.clear();
+        messagelist.clear();
         dataProvider.deleteData();
         resultModel.setNumRows(0);
         URLs.clear();
         dataProvider.setFinished(false);
-        error = "";
         String[] URLStrings = startURLs.getText().split("\n");
         for ( int i = 0; i < URLStrings.length; i++ ) {
             try {
                 URLs.add(new URL(URLStrings[i]));
             } catch (MalformedURLException ex) {
                 LOG.severe(URLStrings[i] + " is not a proper URL.");
-                error += URLStrings[i] + " is not a proper URL. \n";
+                messagelist.addElement(URLStrings[i] + " is not a proper URL.");
             }
         }
         maxThreads = 4;
+        if ( threadCount.getText().isEmpty() )
+            threadCount.setText("4");
         if ( Character.isDigit(threadCount.getText().charAt(0)) ) {
             maxThreads = Integer.parseInt(threadCount.getText());
             if ( maxThreads < 1 ) {
@@ -295,7 +317,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
             actionObserver.doAction();
         } catch (Exception ex) {
             LOG.severe("Application failed.");
-            startURLs.setText(error + "Application failed.");
+            messagelist.addElement("Application failed.");
         }
     }
          

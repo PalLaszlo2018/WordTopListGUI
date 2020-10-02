@@ -9,7 +9,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * This class manages the processing of the got URLs, collects the words of the contents in a Collection.
@@ -43,9 +46,6 @@ public class WordCollector implements Runnable {
             }
             try {
                 processContent(url);
-            } catch (IOException ex) {
-                LOG.severe("Processing of " + url.toString() + " failed.");
-                LOG.warning(ex.getMessage());
             } finally {
                 manager.releaseLatch(url.toString());
             }
@@ -55,9 +55,8 @@ public class WordCollector implements Runnable {
     /**
      * Opens a reader for the got URL, finds the opening tag, and starts the substantive work by calling the eatTag method.
      * @param url
-     * @throws IOException
      */
-    public void processContent(@Nonnull URL url) throws IOException {
+    public void processContent(@Nonnull URL url) {
         LOG.info("Processing of the homepage " + url.toString() + " started.");
         try {
             reader = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -65,8 +64,17 @@ public class WordCollector implements Runnable {
             eatTag(openingTag, reader, true);
         } catch (IOException e) {
             LOG.severe("Processing of the homepage " + url.toString() + " failed.");
+            throw new RuntimeException("Processing of the homepage " + url.toString() + " failed.");
         } finally {
-            reader.close();
+            if ( reader != null)
+                try {
+                    reader.close();
+            } catch (IOException ex) {
+                LOG.severe(url.toString() + " could not be closed.");
+                throw new RuntimeException(url.toString() + " could not be closed.");
+            }
+            else
+                throw new RuntimeException(url.toString() + " could not be processed.");
             reader = null;
         }
     }
@@ -76,31 +84,35 @@ public class WordCollector implements Runnable {
      * found closing tags close the (sub)method.
      * @param tag that starts the text
      * @param reader open reader in its actual status
-     * @throws IOException
      */
-    private void eatTag(@Nonnull String tag, @Nonnull BufferedReader reader, @Nonnull boolean processable) throws IOException {
+    private void eatTag(@Nonnull String tag, @Nonnull BufferedReader reader, @Nonnull boolean processable) {
         int value;
         StringBuilder word = new StringBuilder();
-        while ( (value = reader.read()) != -1 ) {
-            char character = (char) value;
-            if ( character == '<' ) {
-                if ( processable )
-                    manager.storeWord(word);
-                String nextTagString = buildTag(reader);
-                if ( ('/' + tag).equals(nextTagString) )
-                    return;
-                if ( !manager.isSkipTag(tag) && !nextTagString.startsWith("/") ) {
-                    boolean nextProcessable = processable && !manager.isSkipTag(nextTagString);
-                    eatTag(nextTagString, reader, nextProcessable);
+        try {
+            while ( (value = reader.read()) != -1 ) {
+                char character = (char) value;
+                if ( character == '<' ) {
+                    if ( processable )
+                        manager.storeWord(word);
+                    String nextTagString = buildTag(reader);
+                    if ( ('/' + tag).equals(nextTagString) )
+                        return;
+                    if ( !manager.isSkipTag(tag) && !nextTagString.startsWith("/") ) {
+                        boolean nextProcessable = processable && !manager.isSkipTag(nextTagString);
+                        eatTag(nextTagString, reader, nextProcessable);
+                    }
+                }
+                if ( Character.isLetter(character) )
+                    word.append(character);
+                else {
+                    if ( processable )
+                        manager.storeWord(word);
+                    word.setLength(0);
                 }
             }
-            if ( Character.isLetter(character) )
-                word.append(character);
-            else {
-                if ( processable )
-                    manager.storeWord(word);                    
-                word.setLength(0);
-            }
+        } catch (IOException ex) {
+            LOG.severe("Reading failed.");
+            throw new RuntimeException("Reading failed.");
         }
     }
 
@@ -108,32 +120,36 @@ public class WordCollector implements Runnable {
      * This method builds up the tag from the read characters.
      * @param reader open reader in its actual status
      * @return tag
-     * @throws IOException
      */
-    private String buildTag(@Nonnull BufferedReader reader) throws IOException {
+    private String buildTag(@Nonnull BufferedReader reader) {
         StringBuilder tag = new StringBuilder();
         StringBuilder full = new StringBuilder();
         String tagString = "";
         char tagChar = '/';
         int value;
-        while ( (value = reader.read()) != -1 ) {
-            tagChar = (char) value;
-            if ( tagChar == '>' ) {
-                String fullString = full.toString().toLowerCase();
-                if ( tagString.isEmpty() ) 
-                    tagString = fullString;
-                if ( fullString.isEmpty()
-                        || fullString.charAt(full.length() - 1) == '/' //self-closing tags will be ignored
-                        || fullString.startsWith("!--") && fullString.endsWith("--") )  // HTML comments will be ignored
-                    return "";
-                else
-                    return tagString;
+        try {
+            while ( (value = reader.read()) != -1 ) {
+                tagChar = (char) value;
+                if ( tagChar == '>' ) {
+                    String fullString = full.toString().toLowerCase();
+                    if ( tagString.isEmpty() )
+                        tagString = fullString;
+                    if ( fullString.isEmpty()
+                            || fullString.charAt(full.length() - 1) == '/' //self-closing tags will be ignored
+                            || fullString.startsWith("!--") && fullString.endsWith("--") )  // HTML comments will be ignored
+                        return "";
+                    else
+                        return tagString;
+                }
+                full.append(tagChar);
+                if ( tagChar == ' ' && tagString.isEmpty() )
+                    tagString = tag.toString().toLowerCase();
+                if ( tagString.isEmpty() )
+                    tag.append(tagChar);
             }
-            full.append(tagChar);
-            if ( tagChar == ' ' && tagString.isEmpty() ) 
-                tagString = tag.toString().toLowerCase();
-            if ( tagString.isEmpty() ) 
-                tag.append(tagChar);
+        } catch (IOException ex) {
+            LOG.severe("Reading failed.");
+            throw new RuntimeException("Reading failed.");
         }
         return tagString; //if tag is closed, it will never run
     }
@@ -143,17 +159,21 @@ public class WordCollector implements Runnable {
      * This method finds the first opening tag, this tag is needed to start the substantive eatTag method.
      * @param reader open reader in its actual status
      * @return opening tag
-     * @throws IOException
      */
-    private String findOpeningTag(@Nonnull BufferedReader reader) throws IOException {
+    private String findOpeningTag(@Nullable BufferedReader reader) {
         int value;
         String openingTag = "";
-        while ( (value = reader.read()) != -1 ) {
-            char character = (char) value;
-            if ( character == '<' ) {
-                openingTag = buildTag(reader);
-                return openingTag;
+        try {
+            while ( (value = reader.read()) != -1 ) {
+                char character = (char) value;
+                if ( character == '<' ) {
+                    openingTag = buildTag(reader);
+                    return openingTag;
+                }
             }
+        } catch (IOException ex) {
+            LOG.severe("Reading failed.");
+            throw new RuntimeException("Reading failed.");
         }
         return openingTag;
     }
