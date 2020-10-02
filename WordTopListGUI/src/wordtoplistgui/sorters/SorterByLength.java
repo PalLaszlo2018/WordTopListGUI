@@ -68,7 +68,7 @@ public class SorterByLength implements WordStore {
     public void print(int n) {
         List<String> sortedList = sortedWordsByLength();
         LOG.log(Level.INFO, "The " + n + " longest words:");
-        for (int i = 0; i < n; i++) {
+        for ( int i = 0; i < n; i++ ) {
             LOG.log(Level.INFO, " " + sortedList.get(i));
         }
     }

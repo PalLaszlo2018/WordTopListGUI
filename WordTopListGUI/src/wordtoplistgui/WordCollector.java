@@ -9,8 +9,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -20,6 +18,9 @@ import javax.annotation.Nullable;
  */
 public class WordCollector implements Runnable {
 
+    /**
+     * The collector manager, who runs the threads, and collects the results.
+     */
     @Nonnull
     private final CollectorManager manager;
     @Nonnull
@@ -34,7 +35,7 @@ public class WordCollector implements Runnable {
     }
      
     /**
-     * runs the threads
+     * Runs the threads.
      */
     @Override
     public void run() {
@@ -66,15 +67,15 @@ public class WordCollector implements Runnable {
             LOG.severe("Processing of the homepage " + url.toString() + " failed.");
             throw new RuntimeException("Processing of the homepage " + url.toString() + " failed.");
         } finally {
-            if ( reader != null)
+            if ( reader != null )
                 try {
-                    reader.close();
+                reader.close();
             } catch (IOException ex) {
                 LOG.severe(url.toString() + " could not be closed.");
                 throw new RuntimeException(url.toString() + " could not be closed.");
-            }
-            else
+            } else {
                 throw new RuntimeException(url.toString() + " could not be processed.");
+            }
             reader = null;
         }
     }
@@ -160,6 +161,7 @@ public class WordCollector implements Runnable {
      * @param reader open reader in its actual status
      * @return opening tag
      */
+    @Nullable
     private String findOpeningTag(@Nullable BufferedReader reader) {
         int value;
         String openingTag = "";

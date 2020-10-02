@@ -34,6 +34,7 @@ public class DataStore {
      * Delivers the stored word.
      * @return 
      */
+    @Nonnull
     public String getWord() {
         return word;
     }

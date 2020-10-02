@@ -4,6 +4,8 @@
  */
 package wordtoplistgui;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import wordtoplistgui.GUI.BasicFrame;
 
 /**
@@ -15,14 +17,14 @@ public class EHandler implements Thread.UncaughtExceptionHandler {
     /**
      * Frame to display error messages.
      */
+    @Nonnull
     private BasicFrame frame;
     
     /**
      * Creates a new instance with the given frame.
      * @param frame 
      */
-
-    public EHandler(BasicFrame frame) {
+    public EHandler(@Nonnull BasicFrame frame) {
         this.frame = frame;
     }
     
@@ -32,7 +34,7 @@ public class EHandler implements Thread.UncaughtExceptionHandler {
      * @param e 
      */
     @Override
-    public void uncaughtException(Thread t, Throwable e) {
+    public void uncaughtException(@Nullable Thread t, @Nonnull Throwable e) {
         frame.displayErrors(e.getMessage());
     }
 

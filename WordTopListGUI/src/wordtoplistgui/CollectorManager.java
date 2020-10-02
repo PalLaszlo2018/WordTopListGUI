@@ -151,6 +151,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
      * @return the stored words in List of DataStores format
      */
     @Override
+    @Nullable
     public List<DataStore> getSortedWords() {
         List<Map.Entry<String, Integer>> entryList = store.sortedWordsByFreq();
         List<DataStore> dataList = new ArrayList<>();
@@ -165,6 +166,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
      * @return the List of already processed URLs
      */
     @Override
+    @Nullable
     public List<String> getFinishedURLs() {
         return finishedURLs;
     }
@@ -182,6 +184,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
      * Delivers the exception handler
      * @return exception handler
      */
+    @Nullable
     public UncaughtExceptionHandler getEhandler() {
         return ehandler;
     }
@@ -227,7 +230,7 @@ public class CollectorManager implements ActionObserver, DataProvider {
      * Sets the given exception handler
      * @param ehandler 
      */
-    public void setEhandler(UncaughtExceptionHandler ehandler) {
+    public void setEhandler(@Nonnull UncaughtExceptionHandler ehandler) {
         this.ehandler = ehandler;
     }
     

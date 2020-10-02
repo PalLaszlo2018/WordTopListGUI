@@ -9,6 +9,7 @@ package wordtoplistgui;
 
 import java.net.URL;
 import java.util.Collection;
+import javax.annotation.Nonnull;
 
 /**
  * The implementers provide information for the {@link CollectorManager}, to perform the word collecting process.
@@ -26,6 +27,7 @@ public interface CollectorSettings {
      * Delivers the got URLs.
      * @return the got URLs.
      */
+    @Nonnull
     Collection<URL> getURLs();
 
 }

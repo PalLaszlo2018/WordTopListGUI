@@ -95,6 +95,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     /**
      * Stores the list of URL-s received form the user.
      */
+    @Nonnull
     private List<URL>URLs = new ArrayList<>();
        
     /**
@@ -123,6 +124,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
      * @return 
      */
     @Override
+    @Nonnull
     public Collection<URL> getURLs() {
         return URLs;
     }
@@ -200,14 +202,19 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
      */
     void displayprocessedURLs() {
         List<String> processedURLs = dataProvider.getFinishedURLs();
-        if (processedURLs.size() > listModel.size())
-            for (int i = listModel.size(); i < processedURLs.size(); i++) {
+        if ( processedURLs.size() > listModel.size() )
+            for ( int i = listModel.size(); i < processedURLs.size(); i++ ) {
                 listModel.addElement(processedURLs.get(i));
             }
         
     }
     
-    public void displayErrors(String str) {
+    /**
+     * Displays a new row in error window
+     * @param str word to be displayed
+     */
+    
+    public void displayErrors(@Nonnull String str) {
         messagelist.addElement(str);
     }
     
