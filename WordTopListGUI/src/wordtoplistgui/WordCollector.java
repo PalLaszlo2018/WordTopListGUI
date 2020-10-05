@@ -67,16 +67,14 @@ public class WordCollector implements Runnable {
             LOG.severe("Processing of the homepage " + url.toString() + " failed.");
             throw new RuntimeException("Processing of the homepage " + url.toString() + " failed.");
         } finally {
-            if ( reader != null )
+            if ( reader != null ) {
                 try {
-                reader.close();
-            } catch (IOException ex) {
-                LOG.severe(url.toString() + " could not be closed.");
-                throw new RuntimeException(url.toString() + " could not be closed.");
-            } else {
-                throw new RuntimeException(url.toString() + " could not be processed.");
-            }
+                    reader.close();
+                } catch (IOException ex) {
+                    LOG.severe(url.toString() + " could not be closed.");
+                }
             reader = null;
+            }
         }
     }
 

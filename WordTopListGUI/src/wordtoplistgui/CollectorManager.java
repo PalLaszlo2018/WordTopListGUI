@@ -87,6 +87,9 @@ public class CollectorManager implements ActionObserver, DataProvider {
      */    
     @Override
     public void doAction() {
+        store.deleteMap();   
+        finishedURLs.clear();
+        finished = false;
         store.addSkipWords(skipWords);
         if ( collectorSettings != null ) {
             maxThreads = collectorSettings.getMaxThreads();
@@ -103,11 +106,6 @@ public class CollectorManager implements ActionObserver, DataProvider {
             threadList.get(i).start();
             LOG.info("THREAD " + (i + 1) + " STARTED.");
         }
-    }
-    
-    @Override
-    public void deleteData() {
-        store.deleteMap();
     }
     
     /**
@@ -208,24 +206,8 @@ public class CollectorManager implements ActionObserver, DataProvider {
     public void setCollectorObserver(@Nullable CollectorObserver collectorObserver) {
         this.collectorObserver = collectorObserver;
     }
-    
-    /**
-     * allows setting the value to false for a new search
-     * @param b True/false
-     */
-    @Override
-    public void setFinished(boolean b) {
-        this.finished = b;
-    }
-    
-    /**
-     * Allows deleting finished URL-s for a new search.
-     */
-    @Override
-    public void deleteFinishedURLs() {
-        finishedURLs.clear();
-    }
-    
+   
+   
     /**
      * Sets the given exception handler
      * @param ehandler 

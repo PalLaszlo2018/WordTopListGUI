@@ -291,13 +291,7 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
     }
     
     private void processUserInput() {
-        dataProvider.deleteFinishedURLs();
-        listModel.clear();
-        messagelist.clear();
-        dataProvider.deleteData();
-        resultModel.setNumRows(0);
-        URLs.clear();
-        dataProvider.setFinished(false);
+        deletePrevious();
         String[] URLStrings = startURLs.getText().split("\n");
         for ( int i = 0; i < URLStrings.length; i++ ) {
             try {
@@ -326,6 +320,13 @@ public class BasicFrame extends javax.swing.JFrame implements CollectorSettings,
             LOG.severe("Application failed.");
             messagelist.addElement("Application failed.");
         }
+    }
+    
+    private void deletePrevious () {
+        listModel.clear();
+        messagelist.clear();
+        resultModel.setNumRows(0);
+        URLs.clear();     
     }
          
 

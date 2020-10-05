@@ -28,27 +28,12 @@ public interface DataProvider {
      */
     List<String> getFinishedURLs();
     
-    /**
-     * Clears the collection of URLs for a restart.
-     */
-    void deleteFinishedURLs();
-    
+   
     /**
      * Checks whether the entire procedure was finished or not.
      * @return 
      */
     boolean isFinished();
-    
-    /**
-     * Can set the marker to false allowing restart.
-     * @param b 
-     */
-    void setFinished(boolean b);
-    
-    /**
-     * Deletes the collected information.
-     */
-    void deleteData();
-    
+   
 
 }
